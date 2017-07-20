@@ -64,6 +64,6 @@ class RedditProducer(StoppableThread):
 class TwitchProducer(StoppableThread):
     def run(self):
         while not self.should_stop:
-            time.sleep(10)
+            time.sleep(1)
             print('twitchp')
 

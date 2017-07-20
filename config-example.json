@@ -1,9 +1,12 @@
 {
-    "auth": {
+    "reddit_auth": {
         "client_id": "",
         "client_secret": "",
         "user_agent": "",
         "username": "",
         "password": ""
+    },
+    "twitch_auth": {
+        "client_id": ""
     }
 }

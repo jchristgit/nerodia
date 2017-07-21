@@ -1,18 +1,17 @@
+import json
 import threading
 import time
-import json
+from queue import Queue
 
 import praw
 
-from queue import Queue
-
-from event_handlers import handle_message
+from handlers import handle_message
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
 # The following events are implemented:
 # ('online', <stream_name>) - sent whenever a Twitch Stream goes online.
 # ('offline', <stream_name>) - sent whenever a Twitch Stream goes offline.
-# ('msg', <message_contents>) - sent when a message is received from an authorized user.
+# ('msg', <message_instance>) - sent when a message is received from an authorized user.
 event_queue = Queue()
 
 with open("config.json", 'r') as f:
@@ -57,13 +56,14 @@ class RedditConsumer(StoppableThread):
 class RedditProducer(StoppableThread):
     def run(self):
         while not self.should_stop:
-            time.sleep(2)
-            print('redditp')
+            for msg in reddit.inbox.unread():
+                if msg.author.name in ['Volcyy', '1ceCube']:
+                    print(', '.join(n for n in dir(msg) if not n.startswith('_')))
+                    event_queue.put('message', msg)
+            time.sleep(10)
 
 
 class TwitchProducer(StoppableThread):
     def run(self):
         while not self.should_stop:
-            time.sleep(1)
-            print('twitchp')
-
+            time.sleep(5)

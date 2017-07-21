@@ -4,6 +4,10 @@ from typing import Optional
 from poller import client
 
 
+def stream_exists(name: str) -> bool:
+    return bool(client.users.translate_usernames_to_ids(name))
+
+
 def get_user_id(user_name: str) -> Optional[str]:
     with open("nerodia.json", 'r') as f:
         data = json.load(f)

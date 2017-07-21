@@ -25,17 +25,33 @@ def _get_stream_name(full_msg: praw.models.Message) -> str:
 
 def handle_message(event: Tuple[str, praw.models.Message]) -> None:
     msg = event[1]
+    followed_now = ', '.join(storage.all_follows())
 
     if msg.body.startswith("follow"):
         stream_name = _get_stream_name(msg)
         if not stream_name:
             msg.reply(BOT_USAGE_INFO)
-        storage.follow_stream(stream_name)
+        elif not storage.stream_exists(stream_name):
+            msg.reply(f"**Failed to follow {stream_name}**: Couldn't find the Stream. Are you sure it exists?")
+        else:
+            storage.follow_stream(stream_name)
+            msg.reply(
+                f"**Followed {stream_name}!**\n\nThe following Streams are now being followed:\n{followed_now}"
+            )
 
     elif msg.body.startswith("unfollow"):
         stream_name = _get_stream_name(msg)
         if not stream_name:
             msg.reply(BOT_USAGE_INFO)
+        elif stream_name not in storage.all_follows():
+            msg.reply(
+                f"The stream {stream_name} wasn't followed - these are the ones I'm following:\n\n{followed_now}"
+            )
+        else:
+            storage.unfollow_stream(stream_name)
+            msg.reply(
+                f"**I unfollowed the stream {stream_name}.**\n\nThese are my updated follows:\n{followed_now}"
+            )
 
     elif msg.body == "follows":
         msg.reply(

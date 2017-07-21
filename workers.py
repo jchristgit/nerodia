@@ -58,7 +58,6 @@ class RedditProducer(StoppableThread):
         while not self.should_stop:
             for msg in reddit.inbox.unread():
                 if msg.author.name in ['Volcyy', '1ceCube']:
-                    print(', '.join(n for n in dir(msg) if not n.startswith('_')))
                     event_queue.put('message', msg)
             time.sleep(10)
 

@@ -58,7 +58,7 @@ class RedditProducer(StoppableThread):
         while not self.should_stop:
             for msg in reddit.inbox.unread():
                 if msg.author.name in ['Volcyy', '1ceCube']:
-                    event_queue.put('message', msg)
+                    event_queue.put('msg', msg)
             time.sleep(10)
 
 

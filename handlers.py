@@ -54,6 +54,7 @@ def handle_message(event: Tuple[str, praw.models.Message]) -> None:
             )
 
     elif msg.body == "follows":
-        msg.reply(
-            '# All follows:\n' + ', '.join(storage.all_follows())
-        )
+        msg.reply('# All follows:\n' + ', '.join(storage.all_follows()))
+
+    elif msg.body == 'help':
+        msg.reply(BOT_USAGE_INFO)

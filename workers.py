@@ -52,7 +52,8 @@ class RedditConsumer(StoppableThread):
                 print('Now offline:', event[1])
             else:
                 handle_message(event)
-            time.sleep(2)
+
+            event_queue.task_done()
 
 
 class RedditProducer(StoppableThread):

@@ -12,11 +12,11 @@ if __name__ == '__main__':
         t.start()
 
     try:
-        while True:
-            pass
+        input("Press any key to stop...")
     except KeyboardInterrupt:
-        print('Stopping Workers...')
+        pass
     finally:
+        print("Stopping Workers...")
         workers.event_queue.put(None)
         for t in threads:
             t.stop()

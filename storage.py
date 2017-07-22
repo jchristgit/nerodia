@@ -19,7 +19,7 @@ def get_user_id(user_name: str) -> Optional[str]:
     if not users:
         return None
     user = users[0]
-    data["users"][user["display_name"]] = user['id']
+    data["users"][user["name"]] = user['id']
     with open("nerodia.json", 'w') as f:
         json.dump(data, f, sort_keys=True, indent=4)
     return user['id']
@@ -34,7 +34,9 @@ def follow_stream(stream_name: str):
     with open("nerodia.json", 'r') as f:
         data = json.load(f)
 
-    data["follows"].append(stream_name)
+    correct_casing = client.users.translate_usernames_to_ids(stream_name)
+
+    data["follows"].append(correct_casing[0]["name"])
     with open("nerodia.json", 'w') as f:
         json.dump(data, f, sort_keys=True, indent=4)
 

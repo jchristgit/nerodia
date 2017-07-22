@@ -25,7 +25,8 @@ def _get_stream_name(full_msg: praw.models.Message) -> str:
 
 def handle_message(event: Tuple[str, praw.models.Message]) -> None:
     msg = event[1]
-    followed_now = ', '.join(storage.all_follows())
+    followed_now = ', '.join(storage.all_follows()) or 'No Streams are being followed :('
+    print('New Message from', msg.author.name, 'contents:', msg.body)
 
     if msg.body.startswith("follow"):
         stream_name = _get_stream_name(msg)
@@ -33,6 +34,8 @@ def handle_message(event: Tuple[str, praw.models.Message]) -> None:
             msg.reply(BOT_USAGE_INFO)
         elif not storage.stream_exists(stream_name):
             msg.reply(f"**Failed to follow {stream_name}**: Couldn't find the Stream. Are you sure it exists?")
+        elif stream_name in storage.all_follows():
+            msg.reply(f"I'm already following {stream_name}. :(")
         else:
             storage.follow_stream(stream_name)
             msg.reply(

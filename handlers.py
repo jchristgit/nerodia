@@ -38,6 +38,7 @@ def handle_message(event: Tuple[str, praw.models.Message]) -> None:
             msg.reply(f"I'm already following {stream_name}. :(")
         else:
             storage.follow_stream(stream_name)
+            followed_now = ', '.join(storage.all_follows()) or 'No Streams are being followed :('
             msg.reply(
                 f"**Followed {stream_name}!**\n\nThe following Streams are now being followed:\n{followed_now}"
             )

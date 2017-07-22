@@ -15,7 +15,7 @@ if __name__ == '__main__':
         while True:
             pass
     except KeyboardInterrupt:
-        pass
+        print('Stopping Workers...')
     finally:
         workers.event_queue.put(None)
         for t in threads:

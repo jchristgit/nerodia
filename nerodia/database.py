@@ -28,6 +28,13 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy import create_engine
 
 
+NERODIA_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.abspath(os.path.join(NERODIA_DIR, os.pardir))
+DEFAULT_DB_PATH = os.path.join(
+    PARENT_DIR, "data", "nerodia.db"
+)
+DB_PATH = os.environ.get("NERODIA_DB_PATH", DEFAULT_DB_PATH)
+
 Base = declarative_base()
 Session = sessionmaker()
 
@@ -78,7 +85,6 @@ class Subreddit(Base):
     )
 
 
-DB_PATH = os.environ.get("NERODIA_DB_PATH", "nerodia.db")
 engine = create_engine(f"sqlite:///{DB_PATH}")
 Base.metadata.create_all(engine)
 Session.configure(bind=engine)

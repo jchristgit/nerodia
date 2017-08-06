@@ -1,90 +1,85 @@
-from typing import Generator, NamedTuple
+"""
+Database file. Contains the table
+classes and relationships for
+the Subreddit as well as the Stream
+tables. Each subreddit can follow
+0 - n streams, and each stream can
+be folloed by 0 - n subreddits, thus
+resulting in a many - to - many
+relationship between the two tables.
 
-import dataset
+By default, the database file is
+created under the filename "nerodia.db"
+in the directory in which the application
+is run. If you wish to change this
+behaviour, export an environment
+variable named NERODIA_DB_PATH with
+the full path towards the desired
+database file location.
+"""
+# pylint: disable=too-few-public-methods, invalid-name
+
+import os
+
+from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import ForeignKey, Table
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy import create_engine
 
 
-class FollowedStream(NamedTuple):  # pylint: disable=too-few-public-methods
+Base = declarative_base()
+Session = sessionmaker()
+
+
+# pylint: disable=bad-continuation
+ASSOCIATION_TABLE = Table("association", Base.metadata,
+    Column('followed_by', String(30), ForeignKey('subreddits.follows')),
+    Column('follows', String(30), ForeignKey("streams.name"))
+)
+
+class Stream(Base):
     """
-    A custom NamedTuple that contains
-    the name and the ID of a followed
-    stream in the database.
-    """
-
-    name: str
-    id: int  # pylint: disable=invalid-name
-
-DB = dataset.connect("sqlite:///data/nerodia.db")
-
-# The Streams, with an ID and a name.
-STREAMS = DB['streams']
-
-# The follows, organized by subreddit.
-FOLLOWS = DB['follows']
-
-
-def all_follows() -> Generator[FollowedStream, None, None]:
-    """
-    Returns a generator of all streams being
-    followed in the FollowedStream named tuple.
-    The ID is the stream ID as an integer, and
-    the name is the stream name as a string.
-
-    Example:
-        >>> for follow in all_follows():
-        ...     print(f"{follow.name}: {follow.id}")
-    """
-
-    return (FollowedStream(row['name'], row['id']) for row in STREAMS)
-
-
-def follow_stream(subreddit_name: str, stream_name: str) -> None:
-    """
-    Creates database entries for the given
-    `subreddit_name` to follow the stream
-    given by `stream_name`. This will cause
-    the subreddit's sidebar to be updated
-    when the stream goes online or offline.
-
-    It must be validated that the stream
-    exists before using this function.
-
-    Example with other functions:
-        >>> follow_stream("SomeSubreddit", "SomeStreamer")
-        >>> list(sub_follows("SomeSubreddit"))
-        ["SomeStreamer"]
-        >>> unfollow_stream("SomeSubreddit", "SomeStreamer")
+    The Stream table, used to obtain
+    the ID for the given Twitch stream
+    without making an API call.
     """
 
-    FOLLOWS.upsert(dict(
-        subreddit=subreddit_name,
-        stream=stream_name
-    ), ['subreddit', 'stream'])
+    __tablename__ = "streams"
 
-
-def unfollow_stream(subreddit_name: str, stream_name: str) -> None:
-    """
-    Unfollows the given Stream.
-    Results in the subreddit no
-    longer receiving updates
-    about the stream going online
-    or offline in its sidebar.
-
-    This assumes that the subreddit
-    was following the stream before-
-    hand, but nothing will happen
-    if it did not beforehand.
-    """
-
-    FOLLOWS.delete(
-        subreddit=subreddit_name,
-        stream=stream_name
+    id = Column(Integer, primary_key=True)
+    name = Column(String(30))
+    added_on = Column(DateTime)
+    followed_by = relationship(
+        "Subreddit",
+        secondary=ASSOCIATION_TABLE,
+        back_populates="all_follows"
     )
 
 
-def sub_follows(subreddit_name: str) -> Generator[str]:
+class Subreddit(Base):
     """
-    Gets all stream names that the given
-    subreddit is following as a generator.
+    The Subreddit table, which
+    is used to associate the
+    streams being followed with
+    the subreddits on which they
+    are being followed.
     """
 
-    return (row['stream'] for row in FOLLOWS.find(subreddit=subreddit_name))
+    __tablename__ = "subreddits"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(30))
+    follows = Column(String(30), ForeignKey("streams.name"))
+    all_follows = relationship(
+        "Stream",
+        secondary=ASSOCIATION_TABLE,
+        back_populates="followed_by"
+    )
+
+
+DB_PATH = os.environ.get("NERODIA_DB_PATH", "nerodia.db")
+engine = create_engine(f"sqlite:///{DB_PATH}")
+Base.metadata.create_all(engine)
+Session.configure(bind=engine)
+session = Session()

@@ -19,12 +19,13 @@ database file location.
 """
 # pylint: disable=too-few-public-methods, invalid-name
 
+import datetime
 import os
 
 from sqlalchemy import Column, DateTime, Integer, String
 from sqlalchemy import ForeignKey, Table
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import backref, sessionmaker, relationship
 from sqlalchemy import create_engine
 
 
@@ -41,8 +42,8 @@ Session = sessionmaker()
 
 # pylint: disable=bad-continuation
 ASSOCIATION_TABLE = Table("association", Base.metadata,
-    Column('followed_by', String(30), ForeignKey('subreddits.follows')),
-    Column('follows', String(30), ForeignKey("streams.name"))
+    Column('subreddit_id', Integer, ForeignKey('subreddit.id')),
+    Column('stream_id', Integer, ForeignKey("stream.id"))
 )
 
 class Stream(Base):
@@ -52,16 +53,11 @@ class Stream(Base):
     without making an API call.
     """
 
-    __tablename__ = "streams"
+    __tablename__ = "stream"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(30))
-    added_on = Column(DateTime)
-    followed_by = relationship(
-        "Subreddit",
-        secondary=ASSOCIATION_TABLE,
-        back_populates="all_follows"
-    )
+    added_on = Column(DateTime, default=datetime.datetime.now())
 
 
 class Subreddit(Base):
@@ -73,15 +69,16 @@ class Subreddit(Base):
     are being followed.
     """
 
-    __tablename__ = "subreddits"
+    __tablename__ = "subreddit"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(30))
-    follows = Column(String(30), ForeignKey("streams.name"))
-    all_follows = relationship(
+    follows = Column(String(30), ForeignKey("stream.name"))
+    streams = relationship(
         "Stream",
         secondary=ASSOCIATION_TABLE,
-        back_populates="followed_by"
+        backref=backref('subreddits', lazy='dynamic'),
+        lazy='dynamic'
     )
 
 

@@ -1,3 +1,5 @@
 __pycache__/
+.cache/
 config.json
 data/*.db
+test/*.db

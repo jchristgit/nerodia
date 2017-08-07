@@ -1,4 +1,4 @@
-from typing import Any, Tuple
+from typing import Tuple
 
 import praw
 
@@ -24,7 +24,11 @@ def _get_stream_name(full_msg: praw.models.Message) -> str:
 
 
 def handle_message(event: Tuple[str, praw.models.Message]) -> None:
-    msg = event[1]
+    """
+    Handles the message Event and processes the new message.
+    """
+    _, msg = event
+    # pylint: disable=unused-variable
     followed_now = ', '.join(storage.all_follows()) or 'No Streams are being followed :('
     print('New Message from', msg.author.name, 'contents:', msg.body)
 
@@ -33,14 +37,16 @@ def handle_message(event: Tuple[str, praw.models.Message]) -> None:
         if not stream_name:
             msg.reply(BOT_USAGE_INFO)
         elif not storage.stream_exists(stream_name):
-            msg.reply(f"**Failed to follow {stream_name}**: Couldn't find the Stream. Are you sure it exists?")
+            msg.reply(f"**Failed to follow {stream_name}**: "
+                      "Couldn't find the Stream. Are you sure it exists?")
         elif stream_name in storage.all_follows():
             msg.reply(f"I'm already following {stream_name}. :(")
         else:
             storage.follow_stream(stream_name)
             followed_now = ', '.join(storage.all_follows()) or 'No Streams are being followed :('
             msg.reply(
-                f"**Followed {stream_name}!**\n\nThe following Streams are now being followed:\n{followed_now}"
+                f"**Followed {stream_name}!**\n\n"
+                "The following Streams are now being followed:\n{followed_now}"
             )
 
     elif msg.body.startswith("unfollow"):
@@ -49,12 +55,14 @@ def handle_message(event: Tuple[str, praw.models.Message]) -> None:
             msg.reply(BOT_USAGE_INFO)
         elif stream_name not in storage.all_follows():
             msg.reply(
-                f"The stream {stream_name} wasn't followed - these are the ones I'm following:\n\n{followed_now}"
+                f"The stream {stream_name} wasn't followed "
+                "- these are the ones I'm following:\n\n{followed_now}"
             )
         else:
             storage.unfollow_stream(stream_name)
             msg.reply(
-                f"**I unfollowed the stream {stream_name}.**\n\nThese are my updated follows:\n{followed_now}"
+                f"**I unfollowed the stream {stream_name}.**\n\n"
+                "These are my updated follows:\n{followed_now}"
             )
 
     elif msg.body == "follows":

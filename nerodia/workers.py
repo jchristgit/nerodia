@@ -5,9 +5,9 @@ from queue import Queue
 
 import praw
 
-from handlers import handle_message
-import storage
-import poller
+from . import poller
+from . import storage
+from .handlers import handle_message
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
 # The following events are implemented:

@@ -19,7 +19,8 @@ TEST_DB_PATH = os.path.join(
 )
 os.environ['NERODIA_DB_PATH'] = TEST_DB_PATH
 
-from nerodia import database as db  # pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-position
+from nerodia import database as db  # noqa
 
 
 ONE_MINUTE_AGO = datetime.datetime.now() - datetime.timedelta(minutes=1)
@@ -66,3 +67,7 @@ def test_subreddit_columns():
     assert sub.name == "test-sub"
     assert sub.follows == "test-stream"
     assert sub.streams.all() == []
+
+
+if OLD_DB_PATH is not None:
+    os.environ['NERODIA_DB_PATH'] = OLD_DB_PATH

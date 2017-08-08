@@ -44,7 +44,8 @@ Session = sessionmaker()
 ASSOCIATION_TABLE = Table("association", Base.metadata,
     Column('subreddit_id', Integer, ForeignKey('subreddit.id')),
     Column('stream_id', Integer, ForeignKey("stream.id"))
-)
+)  # noqa
+
 
 class Stream(Base):
     """

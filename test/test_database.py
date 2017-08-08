@@ -48,6 +48,8 @@ def test_stream_columns():
     assert stream.added_on > ONE_MINUTE_AGO
     assert stream.added_on < datetime.datetime.now()
 
+    db.session.rollback()
+
 
 def test_subreddit_columns():
     """
@@ -67,6 +69,45 @@ def test_subreddit_columns():
     assert sub.name == "test-sub"
     assert sub.follows == "test-stream"
     assert sub.streams.all() == []
+
+    db.session.rollback()
+
+
+def test_adds_stream():
+    """
+    Validates that a new stream
+    is added properly and queries
+    return the stream.
+    """
+
+    new_stream = db.Stream(name="good-games", id=1000)
+    db.session.add(new_stream)
+
+    assert db.session.query(db.Stream).first() == new_stream
+    assert new_stream in db.session.query(db.Stream).all()
+    assert db.session.query(db.Stream).filter_by(name="good-games").first() == new_stream
+    assert db.session.query(db.Stream).filter_by(id=1000).first() == new_stream
+
+    db.session.rollback()
+
+
+def test_adds_subreddit():
+    """
+    Similiar to the above function,
+    this validates that a new
+    subreddit is added properly and
+    queries return the subreddit.
+    """
+
+    new_sub = db.Subreddit(name="some-sub", follows="unknown-stream")
+    db.session.add(new_sub)
+
+    assert db.session.query(db.Subreddit).first() == new_sub
+    assert new_sub in db.session.query(db.Subreddit).all()
+    assert db.session.query(db.Subreddit).filter_by(name="some-sub").first() == new_sub
+    assert db.session.query(db.Subreddit).filter_by(follows="unknown-stream").first() == new_sub
+
+    db.session.rollback()
 
 
 if OLD_DB_PATH is not None:

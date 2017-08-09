@@ -7,10 +7,10 @@ when the data is not stored yet.
 
 from typing import List, Optional
 
-import models as db
+from . import models as db
+from . import poller
+from .workers import reddit
 
-import poller
-from workers import reddit
 
 
 def get_stream_id(stream_name: str) -> Optional[int]:

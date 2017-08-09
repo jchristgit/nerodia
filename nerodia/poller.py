@@ -1,15 +1,10 @@
-import json
 from collections import namedtuple
 from typing import Optional
 
-from twitch import TwitchClient
+from .clients import twitch
 
 
 TwitchUser = namedtuple("TwitchUser", "name id")
-
-with open("config.json") as f:
-    CLIENT_ID = json.load(f)["twitch_auth"]["client_id"]
-client = TwitchClient(client_id=CLIENT_ID)
 
 
 def get_user_info(stream_name: str) -> Optional[TwitchUser]:
@@ -28,7 +23,7 @@ def get_user_info(stream_name: str) -> Optional[TwitchUser]:
                               When it does not exist, returns `None`.
     """
 
-    user = client.user.translate_usernames_to_ids(stream_name)
+    user = twitch.user.translate_usernames_to_ids(stream_name)
     if not user:
         return None
     return TwitchUser(name=user[0].name, id=user[0].id)
@@ -48,4 +43,4 @@ def is_online(stream_id: int) -> bool:
         bool: Whether the stream under the given ID is online.
     """
 
-    return client.streams.get_stream_by_user(stream_id) is not None
+    return twitch.streams.get_stream_by_user(stream_id) is not None

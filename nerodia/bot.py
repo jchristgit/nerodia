@@ -16,7 +16,7 @@ exit their while polling loop.
 
 import time
 
-import workers
+from . import workers
 
 SECONDS_IN_A_YEAR = 60 * 60 * 24 * 365
 

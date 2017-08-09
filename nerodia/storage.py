@@ -1,11 +1,11 @@
 import json
 from typing import Optional
 
-from poller import client
+from .clients import twitch
 
 
 def stream_exists(name: str) -> bool:
-    return bool(client.users.translate_usernames_to_ids(name))
+    return bool(twitch.users.translate_usernames_to_ids(name))
 
 
 def get_user_id(user_name: str) -> Optional[str]:
@@ -15,7 +15,7 @@ def get_user_id(user_name: str) -> Optional[str]:
     if user_name in data["users"]:
         return data["users"][user_name]
 
-    users = client.users.translate_usernames_to_ids(user_name)
+    users = twitch.users.translate_usernames_to_ids(user_name)
     if not users:
         return None
     user = users[0]
@@ -34,7 +34,7 @@ def follow_stream(stream_name: str):
     with open("data/nerodia.json", 'r') as f:
         data = json.load(f)
 
-    correct_casing = client.users.translate_usernames_to_ids(stream_name)
+    correct_casing = twitch.users.translate_usernames_to_ids(stream_name)
 
     data["follows"].append(correct_casing[0]["name"])
     with open("nerodia.json", 'w') as f:

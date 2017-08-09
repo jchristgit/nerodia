@@ -33,6 +33,22 @@ def test_known_stream():
     stream_id = db.get_stream_id("volcyy")
     assert isinstance(stream_id, int)
 
-print(db.get_stream_id("volcyy"))
+
+def test_subreddit_exists():
+    """
+    Validates that the subreddit
+    exists function properly returns
+    ``True`` or ``False`` with existing
+    and unknown subreddits.
+    """
+
+    assert db.subreddit_exists("all")
+    assert db.subreddit_exists("askreddit")
+    assert db.subreddit_exists("pics")
+
+    assert not db.subreddit_exists("thisdefinitelydoesnotexist")
+    assert not db.subreddit_exists("123912i0491528190518")
+    assert not db.subreddit_exists("anotherunknownsubreddit")
+
 
 setup.finish()

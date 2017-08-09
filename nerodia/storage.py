@@ -9,7 +9,7 @@ def stream_exists(name: str) -> bool:
 
 
 def get_user_id(user_name: str) -> Optional[str]:
-    with open("nerodia.json", 'r') as f:
+    with open("data/nerodia.json", 'r') as f:
         data = json.load(f)
 
     if user_name in data["users"]:
@@ -20,18 +20,18 @@ def get_user_id(user_name: str) -> Optional[str]:
         return None
     user = users[0]
     data["users"][user["name"]] = user['id']
-    with open("nerodia.json", 'w') as f:
+    with open("data/nerodia.json", 'w') as f:
         json.dump(data, f, sort_keys=True, indent=4)
     return user['id']
 
 
 def all_follows() -> list:
-    with open("nerodia.json", 'r') as f:
+    with open("data/nerodia.json", 'r') as f:
         return json.load(f)["follows"]
 
 
 def follow_stream(stream_name: str):
-    with open("nerodia.json", 'r') as f:
+    with open("data/nerodia.json", 'r') as f:
         data = json.load(f)
 
     correct_casing = client.users.translate_usernames_to_ids(stream_name)

@@ -58,6 +58,7 @@ class Stream(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(30))
+    stream_id = Column(Integer)
     added_on = Column(DateTime, default=datetime.datetime.now())
 
 

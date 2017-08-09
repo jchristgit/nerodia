@@ -23,7 +23,7 @@ def get_user_info(stream_name: str) -> Optional[TwitchUser]:
                               When it does not exist, returns `None`.
     """
 
-    user = twitch.user.translate_usernames_to_ids(stream_name)
+    user = twitch.users.translate_usernames_to_ids(stream_name)
     if not user:
         return None
     return TwitchUser(name=user[0].name, id=user[0].id)

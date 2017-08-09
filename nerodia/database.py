@@ -12,7 +12,6 @@ from . import poller
 from .workers import reddit
 
 
-
 def get_stream_id(stream_name: str) -> Optional[int]:
     """
     Attempts to obtain the stream ID for the

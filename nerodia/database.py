@@ -5,11 +5,12 @@ for data from Reddit or Twitch
 when the data is not stored yet.
 """
 
-from typing import Optional
+from typing import List, Optional
 
 import models as db
 
 import poller
+from workers import reddit
 
 
 def get_stream_id(stream_name: str) -> Optional[int]:
@@ -43,3 +44,18 @@ def get_stream_id(stream_name: str) -> Optional[int]:
         return user.id
 
     return db_stream.stream_id
+
+
+def subreddit_exists(subreddit_name: str) -> bool:
+    """
+    Returns a boolean indicating whether the
+    given Subreddit exists. Checks the Subreddit
+    database table for any entries first.
+    """
+
+
+def get_subreddit_moderators(subreddit_name: str) -> Optional[List[str]]:
+    """
+    Returns a list of Moderators for the given Subreddit.
+    If the Subreddit was not found, returns None.
+    """

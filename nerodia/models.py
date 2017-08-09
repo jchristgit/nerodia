@@ -84,6 +84,21 @@ class Subreddit(Base):
     )
 
 
+class Moderator(Base):
+    """
+    Contains information about
+    the moderators of a Subreddit
+    to avoid issuing unnecessary
+    Reddit API calls.
+    """
+
+    __tablename__ = "moderator"
+
+    id = Column(Integer, primary_key=True)
+    user_name = Column(String(30))
+    subreddit_name = Column(String(30))
+
+
 engine = create_engine(f"sqlite:///{DB_PATH}")
 Base.metadata.create_all(engine)
 Session.configure(bind=engine)

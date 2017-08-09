@@ -5,9 +5,10 @@ from queue import Queue
 
 import praw
 
-from . import poller
-from . import storage
-from .handlers import handle_message
+
+import poller
+import storage
+from handlers import handle_message
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
 # The following events are implemented:
@@ -39,7 +40,7 @@ class StoppableThread(threading.Thread):
 
 class RedditConsumer(StoppableThread):
     def run(self):
-        print('Polling for Reddit Events (consumer)')
+        print('[RedditConsumer] Ready.')
         while not self.should_stop:
             event = event_queue.get()
 
@@ -58,6 +59,7 @@ class RedditConsumer(StoppableThread):
 
 class RedditProducer(StoppableThread):
     def run(self):
+        print("[RedditProducer] Ready.")
         while not self.should_stop:
             for msg in reddit.inbox.unread():
                 if msg.author.name in ['Volcyy', '1ceCube']:
@@ -68,6 +70,7 @@ class RedditProducer(StoppableThread):
 
 class TwitchProducer(StoppableThread):
     def run(self):
+        print("[TwitchProducer] Ready.")
         stream_states = {}
         while not self.should_stop:
             for stream_name in storage.all_follows():

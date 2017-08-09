@@ -16,7 +16,7 @@ exit their while polling loop.
 
 import time
 
-from . import workers
+import workers
 
 SECONDS_IN_A_YEAR = 60 * 60 * 24 * 365
 
@@ -30,11 +30,14 @@ if __name__ == '__main__':
     for t in THREADS:
         t.start()
 
-    time.sleep(SECONDS_IN_A_YEAR)
+    try:
+        time.sleep(SECONDS_IN_A_YEAR)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("Stopping Workers...")
+        workers.event_queue.put(None)
 
-    print("Stopping Workers...")
-    workers.event_queue.put(None)
-
-    for t in THREADS:
-        t.stop()
-        t.join()
+        for t in THREADS:
+            t.stop()
+            t.join()

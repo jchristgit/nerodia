@@ -7,7 +7,7 @@ from typing import Tuple
 
 import praw
 
-from . import storage
+import storage
 
 
 BOT_USAGE_INFO = """

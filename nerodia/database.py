@@ -7,6 +7,8 @@ when the data is not stored yet.
 
 from typing import List, Optional
 
+from prawcore.exceptions import NotFound
+
 from . import models as db
 from . import poller
 from .workers import reddit
@@ -39,8 +41,9 @@ def get_stream_id(stream_name: str) -> Optional[int]:
         user = poller.get_user_info(stream_name)
         if user is None:
             return None
-        db.session.add(db.Stream(name=user.name, stream_id=user.id))
-        return user.id
+        stream_id = int(user.id)
+        db.session.add(db.Stream(name=user.name, stream_id=stream_id))
+        return stream_id
 
     return db_stream.stream_id
 
@@ -51,6 +54,14 @@ def subreddit_exists(subreddit_name: str) -> bool:
     given Subreddit exists. Checks the Subreddit
     database table for any entries first.
     """
+
+    db_sub = db.session.query(db.Subreddit.name.ilike(subreddit_name)).first()
+    if db_sub is None:
+        try:
+            reddit.subreddits.search_by_name(subreddit_name, exact=True)
+        except NotFound:
+            return False
+    return True
 
 
 def get_subreddit_moderators(subreddit_name: str) -> Optional[List[str]]:

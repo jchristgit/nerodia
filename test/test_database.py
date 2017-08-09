@@ -39,12 +39,12 @@ def test_stream_columns():
 
     assert isinstance(stream.name, str)
     assert isinstance(stream.id, int)
-    assert isinstance(stream.subreddits.all(), list)
+    assert isinstance(stream.followed_by.all(), list)
     assert isinstance(stream.added_on, datetime.datetime)
 
     assert stream.name == "test-stream"
     assert stream.id == 1337
-    assert stream.subreddits.all() == []
+    assert stream.followed_by.all() == []
     assert stream.added_on > ONE_MINUTE_AGO
     assert stream.added_on < datetime.datetime.now()
 
@@ -64,11 +64,11 @@ def test_subreddit_columns():
 
     assert isinstance(sub.id, int)
     assert isinstance(sub.name, str)
-    assert isinstance(sub.streams.all(), list)
+    assert isinstance(sub.all_follows.all(), list)
 
     assert sub.name == "test-sub"
     assert sub.follows == "test-stream"
-    assert sub.streams.all() == []
+    assert sub.all_follows.all() == []
 
     db.session.rollback()
 

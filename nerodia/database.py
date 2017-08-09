@@ -75,10 +75,10 @@ class Subreddit(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(30))
     follows = Column(String(30), ForeignKey("stream.name"))
-    streams = relationship(
+    all_follows = relationship(
         "Stream",
         secondary=ASSOCIATION_TABLE,
-        backref=backref('subreddits', lazy='dynamic'),
+        backref=backref('followed_by', lazy='dynamic'),
         lazy='dynamic'
     )
 

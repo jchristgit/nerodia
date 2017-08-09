@@ -20,7 +20,7 @@ TEST_DB_PATH = os.path.join(
 os.environ['NERODIA_DB_PATH'] = TEST_DB_PATH
 
 # pylint: disable=wrong-import-position
-from nerodia import database as db  # noqa
+from nerodia import models as db  # noqa
 
 
 ONE_MINUTE_AGO = datetime.datetime.now() - datetime.timedelta(minutes=1)

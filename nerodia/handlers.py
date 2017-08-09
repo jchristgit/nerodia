@@ -1,8 +1,13 @@
+"""
+Provides handlers for the various events
+that are produced by the RedditProducer.
+"""
+
 from typing import Tuple
 
 import praw
 
-import storage
+from . import storage
 
 
 BOT_USAGE_INFO = """

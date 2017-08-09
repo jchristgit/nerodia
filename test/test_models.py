@@ -11,14 +11,8 @@ reset when the tests are done.
 import datetime
 import os
 
-OLD_DB_PATH = os.environ.get('NERODIA_DB_PATH')
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.abspath(os.path.join(TEST_DIR, os.pardir))
-TEST_DB_PATH = os.path.join(
-    PARENT_DIR, "test", "test.db"
-)
-os.environ['NERODIA_DB_PATH'] = TEST_DB_PATH
-
+from . import setup
+setup.init()
 # pylint: disable=wrong-import-position
 from nerodia import models as db  # noqa
 
@@ -110,5 +104,4 @@ def test_adds_subreddit():
     db.session.rollback()
 
 
-if OLD_DB_PATH is not None:
-    os.environ['NERODIA_DB_PATH'] = OLD_DB_PATH
+setup.finish()

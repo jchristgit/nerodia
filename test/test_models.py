@@ -29,7 +29,7 @@ def test_stream_columns():
 
     new_stream = db.Stream(name="test-stream", id=1337)
     db.session.add(new_stream)
-    stream = db.session.query(db.Stream).first()
+    stream = db.session.query(db.Stream).filter_by(name="test-stream").first()
 
     assert isinstance(stream.name, str)
     assert isinstance(stream.id, int)
@@ -54,7 +54,7 @@ def test_subreddit_columns():
 
     new_sub = db.Subreddit(name="test-sub", follows="test-stream")
     db.session.add(new_sub)
-    sub = db.session.query(db.Subreddit).first()
+    sub = db.session.query(db.Subreddit).filter_by(name="test-sub").first()
 
     assert isinstance(sub.id, int)
     assert isinstance(sub.name, str)
@@ -77,7 +77,6 @@ def test_adds_stream():
     new_stream = db.Stream(name="good-games", id=1000)
     db.session.add(new_stream)
 
-    assert db.session.query(db.Stream).first() == new_stream
     assert new_stream in db.session.query(db.Stream).all()
     assert db.session.query(db.Stream).filter_by(name="good-games").first() == new_stream
     assert db.session.query(db.Stream).filter_by(id=1000).first() == new_stream

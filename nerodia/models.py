@@ -4,7 +4,7 @@ classes and relationships for
 the Subreddit as well as the Stream
 tables. Each subreddit can follow
 0 - n streams, and each stream can
-be folloed by 0 - n subreddits, thus
+be followed by 0 - n subreddits, thus
 resulting in a many - to - many
 relationship between the two tables.
 
@@ -82,21 +82,6 @@ class Subreddit(Base):
         backref=backref('followed_by', lazy='dynamic'),
         lazy='dynamic'
     )
-
-
-class Moderator(Base):
-    """
-    Contains information about
-    the moderators of a Subreddit
-    to avoid issuing unnecessary
-    Reddit API calls.
-    """
-
-    __tablename__ = "moderator"
-
-    id = Column(Integer, primary_key=True)
-    user_name = Column(String(30))
-    subreddit_name = Column(String(30))
 
 
 engine = create_engine(f"sqlite:///{DB_PATH}")

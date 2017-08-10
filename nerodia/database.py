@@ -5,8 +5,10 @@ for data from Reddit or Twitch
 when the data is not stored yet.
 """
 
-from typing import List, Optional
+import functools
+from typing import Optional
 
+from praw.models import RedditorList
 from prawcore.exceptions import NotFound
 
 from . import models as db
@@ -14,6 +16,7 @@ from . import poller
 from .workers import reddit
 
 
+@functools.lru_cache(maxsize=32)
 def get_stream_id(stream_name: str) -> Optional[int]:
     """
     Attempts to obtain the stream ID for the
@@ -48,11 +51,13 @@ def get_stream_id(stream_name: str) -> Optional[int]:
     return db_stream.stream_id
 
 
+@functools.lru_cache(maxsize=32)
 def subreddit_exists(subreddit_name: str) -> bool:
     """
     Returns a boolean indicating whether the
     given Subreddit exists. Checks the Subreddit
     database table for any entries first.
+    Up to 32 recent calls are cached.
     """
 
     db_sub = db.session.query(db.Subreddit.name.ilike(subreddit_name)).first()
@@ -64,8 +69,15 @@ def subreddit_exists(subreddit_name: str) -> bool:
     return True
 
 
-def get_subreddit_moderators(subreddit_name: str) -> Optional[List[str]]:
+@functools.lru_cache(maxsize=128)
+def get_subreddit_moderators(subreddit_name: str) -> Optional[RedditorList]:
     """
     Returns a list of Moderators for the given Subreddit.
     If the Subreddit was not found, returns None.
+    Results from up to 128 recent calls are cached.
     """
+
+    if not subreddit_exists(subreddit_name):
+        return None
+    else:
+        return reddit.subreddit(subreddit_name).moderator()

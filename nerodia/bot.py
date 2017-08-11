@@ -1,43 +1,31 @@
 """
-The startup script for Nerodia.
-Starts off the Threads, one for
-each class defined in workers.py.
-After starting them, it sleeps
-for up to one year, effectively
-waiting for any signal to interrupt
-it. On interruption, it puts None
-onto the event queue in order for
-the Reddit consumer to stop
-processing input events and also
-calls the `stop` method on the
-other threads to make them
-exit their while polling loop.
+Contains the definition for the
+Discord Bot which is used as a
+simpler frontend to the Reddit
+bot for easier configuration.
 """
 
-import time
+from discord.ext import commands
 
-from . import workers
 
-SECONDS_IN_A_YEAR = 60 * 60 * 24 * 365
+DESCRIPTION = "Hello! I am a bot made by Volcyy#2359"
 
-if __name__ == '__main__':
-    THREADS = [
-        workers.RedditConsumer(),
-        workers.RedditProducer(),
-        workers.TwitchProducer()
-    ]
 
-    for t in THREADS:
-        t.start()
+class NerodiaDiscordBot(commands.AutoShardedBot):
+    def __init__(self, token: str):
+        super().__init__(
+            command_prefix=commands.when_mentioned_or("n!"),
+            description=DESCRIPTION,
+            pm_help=True
+        )
+        self._token = token
 
-    try:
-        time.sleep(SECONDS_IN_A_YEAR)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        print("Stopping Workers...")
-        workers.event_queue.put(None)
+    async def on_ready(self):
+        print("[DISCORD] Logged in.")
+        print(f"ID: {self.user.id}")
+        print(f"Total: {len(self.guilds)} Guilds, {len(self.users)} users.")
+        print("Invite Link:\n"
+              f"https://discordapp.com/oauth2/authorize?&client_id={self.user.id}&scope=bot")
 
-        for t in THREADS:
-            t.stop()
-            t.join()
+    def run(self):
+        super().run(self._token)

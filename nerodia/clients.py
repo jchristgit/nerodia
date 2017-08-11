@@ -3,10 +3,15 @@ import json
 import praw
 from twitch import TwitchClient
 
+from .bot import NerodiaDiscordBot
+
 with open("config.json", 'r') as f:
     as_json = json.load(f)
+    DISCORD_AUTH = as_json["discord_auth"]
     REDDIT_AUTH = as_json["reddit_auth"]
     TWITCH_AUTH = as_json["twitch_auth"]
+
+discord = NerodiaDiscordBot(DISCORD_AUTH["token"])
 
 reddit = praw.Reddit(
     client_id=REDDIT_AUTH["client_id"],

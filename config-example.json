@@ -1,4 +1,7 @@
 {
+    "discord_auth": {
+        "token": ""
+    },
     "reddit_auth": {
         "client_id": "",
         "client_secret": "",

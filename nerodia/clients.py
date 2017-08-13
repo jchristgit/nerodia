@@ -11,7 +11,7 @@ with open("config.json", 'r') as f:
     REDDIT_AUTH = as_json["reddit_auth"]
     TWITCH_AUTH = as_json["twitch_auth"]
 
-discord = NerodiaDiscordBot(DISCORD_AUTH["token"])
+discord_token = DISCORD_AUTH["token"]
 
 reddit = praw.Reddit(
     client_id=REDDIT_AUTH["client_id"],

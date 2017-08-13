@@ -17,7 +17,8 @@ exit their while polling loop.
 import time
 
 from . import workers
-from .clients import discord as discord_bot
+from .bot import NerodiaDiscordBot
+from .clients import discord_token
 
 SECONDS_IN_A_YEAR = 60 * 60 * 24 * 365
 
@@ -31,6 +32,7 @@ if __name__ == '__main__':
     for t in THREADS:
         t.start()
 
+    discord_bot = NerodiaDiscordBot(discord_token)
     discord_bot.run()
 
     try:

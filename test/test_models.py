@@ -9,11 +9,10 @@ reset when the tests are done.
 """
 
 import datetime
-import os
 
 from . import setup
 setup.init()
-# pylint: disable=wrong-import-position
+
 from nerodia import models as db  # noqa
 
 
@@ -63,6 +62,26 @@ def test_subreddit_columns():
     assert sub.name == "test-sub"
     assert sub.follows == "test-stream"
     assert sub.all_follows.all() == []
+
+    db.session.rollback()
+
+
+def test_drconnection_columns():
+    """
+    Validates that the rows in the
+    DRConnection table have the
+    correct types and values.
+    """
+
+    new_dr_conn = db.DRConnection(discord_id=1337, reddit_name="1337")
+    db.session.add(new_dr_conn)
+    dr_conn = db.session.query(db.DRConnection).first()
+
+    assert isinstance(dr_conn.discord_id, int)
+    assert isinstance(dr_conn.reddit_name, str)
+
+    assert dr_conn.discord_id == 1337
+    assert dr_conn.reddit_name == "1337"
 
     db.session.rollback()
 

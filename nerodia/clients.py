@@ -1,9 +1,21 @@
+"""
+Initializes various clients
+from the authorization data
+in the `config.json` file.
+For Discord, only a token
+is saved instead of the
+client itself, because discord.py
+initializes a client session
+on bot creation, and no proper
+cleanup is done when the bot
+is never run (e.g. in tests).
+"""
+
 import json
 
 import praw
 from twitch import TwitchClient
 
-from .bot import NerodiaDiscordBot
 
 with open("config.json", 'r') as f:
     as_json = json.load(f)

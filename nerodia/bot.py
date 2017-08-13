@@ -21,6 +21,15 @@ DESCRIPTION = (
 
 
 class NerodiaDiscordBot(commands.AutoShardedBot):
+    """
+    The base class for the discord Bot.
+    This is a bit different from the
+    usual discord.py bot since it takes
+    the login token in the constructor,
+    and in exchange takes no arguments
+    in the `run` call.
+    """
+
     def __init__(self, token: str):
         super().__init__(
             command_prefix=commands.when_mentioned_or("n!"),
@@ -31,6 +40,10 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
         self._token = token
 
     async def on_ready(self):
+        """
+        Event emitted when the bot has finished logging in.
+        """
+
         print("[DISCORD] Logged in.")
         print(f"ID: {self.user.id}")
         print(f"Total: {len(self.guilds)} Guilds, {len(self.users)} users.")
@@ -38,4 +51,11 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
               f"https://discordapp.com/oauth2/authorize?&client_id={self.user.id}&scope=bot")
 
     def run(self):
+        """
+        Start the bot.
+        This call does not exit until the bot
+        shuts down either through the client
+        or signal from the terminal, e.g. ^C.
+        """
+
         super().run(self._token)

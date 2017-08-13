@@ -1,3 +1,9 @@
+"""
+Imports various modules from
+this package so that relative
+imports work properly.
+"""
+
 # flake8: noqa
 from . import bot
 from . import clients

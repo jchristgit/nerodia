@@ -1,5 +1,5 @@
 """
-Handles receiving data from
+Abstracts receiving data from
 the SQLite database, and polling
 for data from Reddit or Twitch
 when the data is not stored yet.

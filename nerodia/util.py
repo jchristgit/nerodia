@@ -29,7 +29,7 @@ def random_string(length: int = 5):
     random characters.
 
     Arguments:
-        length (int)
+        length (int):
             The length of the string to generate.
             Defaults to 5.
 
@@ -39,3 +39,18 @@ def random_string(length: int = 5):
     """
 
     return ''.join(random.choice(string.ascii_letters) for _ in range(length))
+
+
+def remove_token(user_id: str):
+    """
+    Removes the given user ID from the token dict,
+    along with the token which the user may or may not
+    have used for connecting his Discord account with
+    his reddit account for easy execution of commands.
+
+    Arguments:
+        user_id (str): The user ID which should be removed from the dict.
+    """
+
+    with token_lock:
+        del token_dict[user_id]

@@ -12,7 +12,7 @@ from discord.ext import commands
 
 from . import util
 from . import models as db
-from .util import token_dict, token_lock, verify_dict, verify_lock
+from .util import remove_token, token_dict, token_lock, verify_dict, verify_lock
 
 
 DM_ONLY_EMBED = discord.Embed(
@@ -50,8 +50,11 @@ def create_instructions() -> discord.Embed:
               "may appear in the bot's log messages**. You can "
               "disconnect a connected account at any time.",
         inline=False
+    ).add_field(
+        name="Warning",
+        value="**Do not share this link!**"
     ).set_footer(
-        text="⏲ You have five minutes time."
+        text="⏲ You have five minutes of time before the token expires."
     )
 
 
@@ -116,11 +119,12 @@ class Nerodia:
         """
         Connects your Discord account to your reddit account.
         Please make sure to carefully read through the
-        instructions that this command sends upon invocation.
+        disclaimer and  the instructions that this
+        command sends upon invocation.
 
         This command can only be used in private messages
         to prevent other people connecting their reddit account
-        to yours, for whatever reason.
+        to your Discord ID, for whatever reason.
         """
 
         if not isinstance(ctx.message.channel, discord.abc.PrivateChannel):
@@ -140,11 +144,20 @@ class Nerodia:
 
         print("discord: waiting for verification")
         reddit_name = await wait_for_add(author_id)
+        remove_token(author_id)
 
         if reddit_name is None:
-            print("Discord: Couldnt verify in time.")
+            await ctx.send(embed=discord.Embed(
+                title="Failed to verify:",
+                description="No verification PM was received in time.",
+                colour=discord.Colour.red()
+            ))
         else:
-            print("discord: user verified, name:", reddit_name)
+            await ctx.send(embed=discord.Embed(
+                title="Verified successfully:",
+                description=f"Your reddit name is {reddit_name}!",
+                colour=discord.Colour.green()
+            ))
 
 
 def setup(bot):

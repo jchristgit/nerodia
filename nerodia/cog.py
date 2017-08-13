@@ -11,7 +11,7 @@ from typing import Optional
 from discord.ext import commands
 
 from . import util
-from .database import add_dr_connection, has_reddit_connected
+from .database import add_dr_connection, remove_dr_connection, has_reddit_connected
 from .util import (
     remove_token,
     token_dict, token_lock,
@@ -131,7 +131,12 @@ async def wait_for_add(user_id: str, timeout: int = VERIFY_TIMEOUT) -> Optional[
 
 
 class Nerodia:
-    """Commands for interacting with the Nerodia reddit bot."""
+    """
+    Commands for interacting with the Nerodia reddit bot.
+    Please note that the Discord <-> reddit connection of
+    the bot has nothing to do with the one on your Discord
+    profile, which the bot cannot access anyways.
+    """
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -177,6 +182,28 @@ class Nerodia:
             await ctx.send(embed=discord.Embed(
                 title="Verified successfully:",
                 description=f"Your reddit name is {reddit_name}!",
+                colour=discord.Colour.green()
+            ))
+
+    @commands.command()
+    async def disconnectreddit(self, ctx):
+        """
+        Disconnects your reddit account from
+        your Discord account, if connected.
+        """
+
+        if not has_reddit_connected(ctx.message.author.id):
+            return await ctx.send(embed=discord.Embed(
+                title="Failed to disconnect:",
+                description="You do not have an account connected.",
+                colour=discord.Colour.red()
+            ))
+        else:
+            remove_dr_connection(ctx.message.author.id)
+            return await ctx.send(embed=discord.Embed(
+                title="Disconnected!",
+                description="Your reddit account was successfully "
+                            "disconnected from your Discord ID.",
                 colour=discord.Colour.green()
             ))
 

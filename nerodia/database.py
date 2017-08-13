@@ -119,6 +119,21 @@ def add_dr_connection(discord_id: int, reddit_name: str):
     db.session.commit()
 
 
+def remove_dr_connection(discord_id: int):
+    """
+    Removes a discord ID | reddit name
+    "connection" (row) from the database.
+
+    Arguments:
+        discord_id (int): the discord ID of the mapping to be removed
+    """
+
+    db.session.query(db.DRConnection) \
+        .filter(db.DRConnection.discord_id == discord_id) \
+        .delete()
+    db.session.commit()
+
+
 def has_reddit_connected(discord_id: int) -> bool:
     """
     Checks whether the given discord ID

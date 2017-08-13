@@ -22,19 +22,26 @@ def handle_verify(msg: praw.models.Message):
     Discord account for easy usage of other commands.
     """
 
+    print("handler: verifying...")
     with token_lock:
         for key, val in token_dict.items():
+            print("handler:", key, val)
             if msg.body == val:
+                print("handler: found token")
                 discord_id = key
                 break
         else:
+            print("handler: couldnt find token")
             discord_id = None
 
     if discord_id is not None:
+        print("handler: verified, acquiring lock..")
         with verify_lock:
+            print("handler: verified, acquired lock")
             verify_dict[discord_id] = msg.author.name
         msg.reply("You have connected your accounts successfully!")
     else:
+        print("handler: not verified.")
         msg.reply(f"> {msg.body}\n\nFailed to connect accounts: Unknown token.")
 
 
@@ -46,5 +53,6 @@ def handle_message(event: Tuple[str, praw.models.Message]) -> None:
     _, msg = event
     print('New Message from', msg.author.name, 'contents:', msg.body)
 
-    if msg.subject == "verify":
+    if msg.subject == "verification":
+        print("wants to verify.")
         handle_verify(msg)

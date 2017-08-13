@@ -100,16 +100,44 @@ def get_subreddit_moderators(subreddit_name: str) -> Optional[RedditorList]:
         return reddit.subreddit(subreddit_name).moderator()
 
 
-def add_dr_connection(discord_id: str, reddit_name: str):
+def add_dr_connection(discord_id: int, reddit_name: str):
     """
     Adds a row to the DRConnection table.
-    The discord ID is converted to an integer.
 
     Arguments:
-        discord_id (str): The Discord ID of the user who invoked a command.
+        discord_id (int): The Discord ID of the user who invoked a command.
         reddit_name (str): The reddit name of the user.
+
+    Notes:
+        Since this function is only called on the
+        main thread (in the discord Bot, specifically
+        the Nerodia cog), this does not use
+        any locking mechanism.
     """
 
-    print("Adding a connection for", discord_id, reddit_name)
-    db.session.add(db.DRConnection(discord_id, reddit_name))
+    db.session.add(db.DRConnection(discord_id=discord_id, reddit_name=reddit_name))
     db.session.commit()
+
+
+def has_reddit_connected(discord_id: int) -> bool:
+    """
+    Checks whether the given discord ID
+    has a reddit account connected with
+    them in the database.
+
+    Arguments:
+        discord_id (int): The discord ID for which to check.
+
+    Returns:
+        bool: Whether the given ID has a reddit account associated with them.
+
+    Notes:
+        Since this function is only called on the
+        main thread (in the discord Bot, specifically
+        the Nerodia cog), this does not use
+        any locking mechanism.
+    """
+
+    return db.session.query(db.DRConnection) \
+        .filter(db.DRConnection.discord_id == discord_id) \
+        .first() is not None

@@ -32,18 +32,26 @@ DM_ONLY_EMBED = discord.Embed(
                 "only be used in private messages.",
     colour=discord.Colour.red()
 )
+NO_PM_IN_TIME_EMBED = discord.Embed(
+    title="Failed to verify:",
+    description="No verification PM was received in time.",
+    colour=discord.Colour.red()
+)
 PM_URL = "https://www.reddit.com/message/compose?to=Botyy&subject=verification&message="
 
 # The timeout for the reddit verification, in minutes
 VERIFY_TIMEOUT = 5
 
 
-def create_instructions() -> discord.Embed:
+def create_instructions(token: str) -> discord.Embed:
     """
     Creates an Embed containing the disclaimer
     for adding a Reddit account to your Discord account.
     This should be used for adding a field with the token
     which the user should send to the bot via a direct message.
+
+    Arguments:
+        token (str): The token that should be appended to the reddit PM link.
 
     Returns:
         discord.Embed: An embed with a disclaimer about user data.
@@ -64,6 +72,10 @@ def create_instructions() -> discord.Embed:
     ).add_field(
         name="Warning",
         value="**Do not share this link!**"
+    ).add_field(
+        name="Instructions",
+        value=f"Send me a [Reddit Message]({PM_URL + token}) by clicking on "
+              f"the link and clicking `send` to connect your reddit account.",
     ).set_footer(
         text="⏲ You have five minutes of time before the token expires."
     )
@@ -148,12 +160,7 @@ class Nerodia:
             return await ctx.send(embed=ALREADY_CONNECTED_EMBED)
 
         token = util.random_string()
-        await ctx.send(embed=create_instructions().add_field(
-            name="Instructions",
-            value=f"Send me a [Reddit Message]({PM_URL + token}) by clicking on "
-                  f"the link and clicking `send` to connect your reddit account.",
-            inline=False
-        ))
+        await ctx.send(embed=create_instructions(token))
 
         author_id = str(ctx.message.author.id)
         with token_lock:
@@ -164,11 +171,7 @@ class Nerodia:
         remove_token(author_id)
 
         if reddit_name is None:
-            await ctx.send(embed=discord.Embed(
-                title="Failed to verify:",
-                description="No verification PM was received in time.",
-                colour=discord.Colour.red()
-            ))
+            await ctx.send(embed=NO_PM_IN_TIME_EMBED)
         else:
             add_dr_connection(ctx.message.author.id, reddit_name)
             await ctx.send(embed=discord.Embed(
@@ -178,5 +181,10 @@ class Nerodia:
             ))
 
 
-def setup(bot):
+def setup(bot: commands.Bot):
+    """
+    Adds the nerodia command
+    group to the discord bot.
+    """
+
     bot.add_cog(Nerodia(bot))

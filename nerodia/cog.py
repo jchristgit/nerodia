@@ -11,16 +11,19 @@ from typing import Optional
 from discord.ext import commands
 
 from . import util
-from .util import verify_dict, verify_lock
+from .util import token_dict, token_lock, verify_dict, verify_lock
 
 
-PM_URL = "https://www.reddit.com/message/compose?to=Botyy&subject=verification"
 DM_ONLY_EMBED = discord.Embed(
-    title="Cannot connect reddit account:",
+    title="Cannot connect accounts:",
     description="For safety reasons, this command can "
                 "only be used in private messages.",
     colour=discord.Colour.red()
 )
+PM_URL = "https://www.reddit.com/message/compose?to=Botyy&subject=verification"
+
+# The timeout for the reddit verification, in minutes
+VERIFY_TIMEOUT = 5
 
 
 def create_instructions() -> discord.Embed:
@@ -51,7 +54,7 @@ def create_instructions() -> discord.Embed:
     )
 
 
-async def wait_for_add(user_id: str, timeout: int = 5) -> Optional[str]:
+async def wait_for_add(user_id: str, timeout: int = VERIFY_TIMEOUT) -> Optional[str]:
     """
     Waits for the given user to add his reddit
     account. It is highly recommended to set
@@ -71,7 +74,8 @@ async def wait_for_add(user_id: str, timeout: int = 5) -> Optional[str]:
             that the user did not send a direct
             message for adding his reddit account
             in time. The user is removed from the
-            verification dictionary. Defaults to 5.
+            verification dictionary. Defaults to
+            the value of `VERIFY_TIMEOUT`.
 
     Returns:
         Optional[str]:
@@ -84,13 +88,14 @@ async def wait_for_add(user_id: str, timeout: int = 5) -> Optional[str]:
     while timeout_ctr > 0:
         await asyncio.sleep(5)
         with verify_lock:
-            user = verify_dict[user_id]
+            user = verify_dict.get(user_id)
 
         if user is not None:
+            with verify_lock:
+                del verify_dict[user]
             return user
 
         timeout_ctr -= 5
-    del verify_dict[user_id]
     return None
 
 
@@ -124,8 +129,11 @@ class Nerodia:
             inline=False
         ))
 
-        with verify_lock:
-            verify_dict[str(ctx.message.author.id)] = None
+        author_id = str(ctx.message.author.id)
+        with token_lock:
+            token_dict[author_id] = token
+
+        reddit_name = await wait_for_add(author_id)
 
 
 def setup(bot):

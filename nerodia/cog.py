@@ -11,6 +11,7 @@ from typing import Optional
 from discord.ext import commands
 
 from . import util
+from . import models as db
 from .util import token_dict, token_lock, verify_dict, verify_lock
 
 
@@ -20,7 +21,7 @@ DM_ONLY_EMBED = discord.Embed(
                 "only be used in private messages.",
     colour=discord.Colour.red()
 )
-PM_URL = "https://www.reddit.com/message/compose?to=Botyy&subject=verification"
+PM_URL = "https://www.reddit.com/message/compose?to=Botyy&subject=verification&message="
 
 # The timeout for the reddit verification, in minutes
 VERIFY_TIMEOUT = 5
@@ -80,22 +81,26 @@ async def wait_for_add(user_id: str, timeout: int = VERIFY_TIMEOUT) -> Optional[
     Returns:
         Optional[str]:
             The reddit name of the user if successful,
-            `None` if no direct message containing the
-            token was received in time.
+            `None` if no valid direct message containing
+            the token was received in time.
     """
 
     timeout_ctr = timeout * 60
     while timeout_ctr > 0:
+        print("wait for add: sleeping for 5 seconds.")
         await asyncio.sleep(5)
+        timeout_ctr -= 5
         with verify_lock:
             user = verify_dict.get(user_id)
 
         if user is not None:
+            print("wait for add: found user.")
             with verify_lock:
-                del verify_dict[user]
+                del verify_dict[user_id]
+            print("wait for add: removed user from verify dict.")
+
             return user
 
-        timeout_ctr -= 5
     return None
 
 
@@ -124,8 +129,8 @@ class Nerodia:
         token = util.random_string()
         await ctx.send(embed=create_instructions().add_field(
             name="Instructions",
-            value=f"Send me a [Reddit Message]({PM_URL}) containing"
-                  f"`{token}` to add your reddit account.",
+            value=f"Send me a [Reddit Message]({PM_URL + token}) by clicking on "
+                  f"the link and clicking `send` to connect your reddit account.",
             inline=False
         ))
 
@@ -133,7 +138,13 @@ class Nerodia:
         with token_lock:
             token_dict[author_id] = token
 
+        print("discord: waiting for verification")
         reddit_name = await wait_for_add(author_id)
+
+        if reddit_name is None:
+            print("Discord: Couldnt verify in time.")
+        else:
+            print("discord: user verified, name:", reddit_name)
 
 
 def setup(bot):

@@ -48,10 +48,9 @@ class RedditProducer(StoppableThread):
         print("[RedditProducer] Ready.")
         while not self.should_stop:
             for msg in reddit.inbox.unread():
-                if msg.author.name in ['Volcyy', '1ceCube']:
-                    event_queue.put(('msg', msg))
-                    msg.mark_read()
-            time.sleep(30)
+                event_queue.put(('msg', msg))
+                msg.mark_read()
+            time.sleep(10)
 
 
 class TwitchProducer(StoppableThread):

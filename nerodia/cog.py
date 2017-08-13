@@ -3,12 +3,15 @@ Contains the command group
 for the Discord Bot.
 """
 
+import asyncio
 import datetime
 import discord
+from typing import Optional
 
 from discord.ext import commands
 
 from . import util
+from .util import verify_dict, verify_lock
 
 
 PM_URL = "https://www.reddit.com/message/compose?to=Botyy&subject=verification"
@@ -43,7 +46,52 @@ def create_instructions() -> discord.Embed:
               "may appear in the bot's log messages**. You can "
               "disconnect a connected account at any time.",
         inline=False
+    ).set_footer(
+        text="⏲ You have five minutes time."
     )
+
+
+async def wait_for_add(user_id: str, timeout: int = 5) -> Optional[str]:
+    """
+    Waits for the given user to add his reddit
+    account. It is highly recommended to set
+    a timeout, this defaults to five minutes.
+    The dictionary which contains data about
+    verification is checked in intervals,
+    accomplished by sleeping for five seconds
+    between checking the dictionary.
+
+    Arguments:
+        user_id (str):
+            The Discord user ID for the user
+            who wants to add his reddit account.
+        timeout (int):
+            The timeout (in minutes) after which
+            `None` should be returned indicating
+            that the user did not send a direct
+            message for adding his reddit account
+            in time. The user is removed from the
+            verification dictionary. Defaults to 5.
+
+    Returns:
+        Optional[str]:
+            The reddit name of the user if successful,
+            `None` if no direct message containing the
+            token was received in time.
+    """
+
+    timeout_ctr = timeout * 60
+    while timeout_ctr > 0:
+        await asyncio.sleep(5)
+        with verify_lock:
+            user = verify_dict[user_id]
+
+        if user is not None:
+            return user
+
+        timeout_ctr -= 5
+    del verify_dict[user_id]
+    return None
 
 
 class Nerodia:
@@ -69,14 +117,15 @@ class Nerodia:
             return await ctx.send(embed=DM_ONLY_EMBED)
 
         token = util.random_string()
-        instructions = create_instructions()
-        instructions.add_field(
+        await ctx.send(embed=create_instructions().add_field(
             name="Instructions",
             value=f"Send me a [Reddit Message]({PM_URL}) containing"
-                  f"`{token}` to verify your account.",
+                  f"`{token}` to add your reddit account.",
             inline=False
-        )
-        await ctx.send(embed=instructions)
+        ))
+
+        with verify_lock:
+            verify_dict[str(ctx.message.author.id)] = None
 
 
 def setup(bot):

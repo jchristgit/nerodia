@@ -22,7 +22,7 @@ database file location.
 import datetime
 import os
 
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import BigInteger, Column, DateTime, Integer, String
 from sqlalchemy import ForeignKey, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, sessionmaker, relationship
@@ -82,6 +82,21 @@ class Subreddit(Base):
         backref=backref('followed_by', lazy='dynamic'),
         lazy='dynamic'
     )
+
+
+class DRConnection(Base):
+    """
+    The Discord ID <-> Reddit table.
+    Contains Discord IDs associated
+    with a reddit name. Discord users
+    agree to this in the
+    "connectreddit" command.
+    """
+
+    __tablename__ = "drmapping"
+
+    discord_id = Column(BigInteger, primary_key=True)
+    reddit_name = Column(String(30))
 
 
 engine = create_engine(f"sqlite:///{DB_PATH}")

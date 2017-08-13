@@ -35,7 +35,7 @@ def handle_verify(msg: praw.models.Message):
             verify_dict[discord_id] = msg.author.name
         msg.reply("You have connected your accounts successfully!")
     else:
-        msg.reply("Failed to connect accounts: Unknown token.")
+        msg.reply(f"> {msg.body}\n\nFailed to connect accounts: Unknown token.")
 
 
 def handle_message(event: Tuple[str, praw.models.Message]) -> None:

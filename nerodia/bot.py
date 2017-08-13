@@ -18,6 +18,7 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
             description=DESCRIPTION,
             pm_help=True
         )
+        self.load_extension("nerodia.cog")
         self._token = token
 
     async def on_ready(self):

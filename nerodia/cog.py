@@ -133,9 +133,6 @@ async def wait_for_add(user_id: str, timeout: int = VERIFY_TIMEOUT) -> Optional[
 class Nerodia:
     """
     Commands for interacting with the Nerodia reddit bot.
-    Please note that the Discord <-> reddit connection of
-    the bot has nothing to do with the one on your Discord
-    profile, which the bot cannot access anyways.
     """
 
     def __init__(self, bot: commands.Bot):

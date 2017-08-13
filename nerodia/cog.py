@@ -11,10 +11,21 @@ from typing import Optional
 from discord.ext import commands
 
 from . import util
-from . import models as db
-from .util import remove_token, token_dict, token_lock, verify_dict, verify_lock
+from .database import add_dr_connection, has_reddit_connected
+from .util import (
+    remove_token,
+    token_dict, token_lock,
+    verify_dict, verify_lock
+)
 
 
+ALREADY_CONNECTED_EMBED = discord.Embed(
+    title="Cannot connect accounts:",
+    description="You already have a reddit account connected. "
+                "Use the `disconnectreddit` command to disconnect "
+                "your Discord account from your reddit account.",
+    colour=discord.Colour.orange()
+)
 DM_ONLY_EMBED = discord.Embed(
     title="Cannot connect accounts:",
     description="For safety reasons, this command can "
@@ -122,6 +133,10 @@ class Nerodia:
         disclaimer and  the instructions that this
         command sends upon invocation.
 
+        If you already have a reddit account connected,
+        please use the `disconnectreddit` command to
+        remove your reddit account from the database.
+
         This command can only be used in private messages
         to prevent other people connecting their reddit account
         to your Discord ID, for whatever reason.
@@ -129,6 +144,8 @@ class Nerodia:
 
         if not isinstance(ctx.message.channel, discord.abc.PrivateChannel):
             return await ctx.send(embed=DM_ONLY_EMBED)
+        elif has_reddit_connected(ctx.message.author.id):
+            return await ctx.send(embed=ALREADY_CONNECTED_EMBED)
 
         token = util.random_string()
         await ctx.send(embed=create_instructions().add_field(
@@ -153,6 +170,7 @@ class Nerodia:
                 colour=discord.Colour.red()
             ))
         else:
+            add_dr_connection(ctx.message.author.id, reddit_name)
             await ctx.send(embed=discord.Embed(
                 title="Verified successfully:",
                 description=f"Your reddit name is {reddit_name}!",

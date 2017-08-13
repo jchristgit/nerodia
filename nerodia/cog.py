@@ -12,6 +12,12 @@ from . import util
 
 
 PM_URL = "https://www.reddit.com/message/compose?to=Botyy&subject=verification"
+DM_ONLY_EMBED = discord.Embed(
+    title="Cannot connect reddit account:",
+    description="For safety reasons, this command can "
+                "only be used in private messages.",
+    colour=discord.Colour.red()
+)
 
 
 def create_instructions() -> discord.Embed:
@@ -33,7 +39,7 @@ def create_instructions() -> discord.Embed:
         name="Disclaimer",
         value="By connecting your account, you agree that your "
               "**Discord ID is stored unencrypted for an indefinite "
-              "time, along with your Reddit name, and this information "
+              "time, along with your reddit name, and this information "
               "may appear in the bot's log messages**. You can "
               "disconnect a connected account at any time.",
         inline=False
@@ -41,7 +47,7 @@ def create_instructions() -> discord.Embed:
 
 
 class Nerodia:
-    """Commands for interacting with the Nerodia Reddit bot."""
+    """Commands for interacting with the Nerodia reddit bot."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -50,10 +56,17 @@ class Nerodia:
     @commands.command(name="connectreddit")
     async def connect_reddit(self, ctx):
         """
-        Connects your Discord account to your Reddit account.
+        Connects your Discord account to your reddit account.
         Please make sure to carefully read through the
         instructions that this command sends upon invocation.
+
+        This command can only be used in private messages
+        to prevent other people connecting their reddit account
+        to yours, for whatever reason.
         """
+
+        if not isinstance(ctx.message.channel, discord.abc.PrivateChannel):
+            return await ctx.send(embed=DM_ONLY_EMBED)
 
         token = util.random_string()
         instructions = create_instructions()

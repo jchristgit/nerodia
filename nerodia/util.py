@@ -10,6 +10,12 @@ import string
 import threading
 
 
+# A Discord ID -> verification token mapping.
+token_dict = dict()
+
+# Used for modifications and access to above dictionary.
+token_lock = threading.Lock()
+
 # Used to verify users. To be used along with the lock defined below.
 verify_dict = dict()
 

@@ -1,10 +1,20 @@
 """
-Contains utility functions that
-can be used in various modules.
+Contains utility functions and
+variables that can or should be
+used in various modules, such as
+locks for different variables.
 """
 
-import string
 import random
+import string
+import threading
+
+
+# Used to verify users. To be used along with the lock defined below.
+verify_dict = dict()
+
+# Used for modifications to the verification dictionary.
+verify_lock = threading.Lock()
 
 
 def random_string(length: int = 5):

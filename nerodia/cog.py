@@ -12,7 +12,11 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
 from . import util
-from .database import add_dr_connection, get_moderated_subreddits, get_reddit_name, remove_dr_connection
+from .database import (
+    add_dr_connection, remove_dr_connection,
+    get_moderated_subreddits, get_reddit_name, get_subreddit_moderators,
+    subreddit_exists
+)
 from .util import (
     remove_token,
     token_dict, token_lock,
@@ -227,7 +231,16 @@ class Nerodia:
         if reddit_name is None:
             await ctx.send(embed=NO_CONNECTION_EMBED)
         elif subreddit_name is not None:
-            pass
+            if subreddit_exists(subreddit_name):
+                await ctx.send(embed=discord.Embed(
+                    colour=discord.Colour.blue()
+                ).set_author(
+                    name=f"Dashboard for {subreddit_name}",
+                    url=f"https://reddit.com/r/{subreddit_name}"
+                ).add_field(
+                    name="Subreddit Moderators",
+                    value='• ' + '\n• '.join(r.name for r in get_subreddit_moderators(subreddit_name))
+                ))
         else:
             moderated_subs = '\n'.join(get_moderated_subreddits(reddit_name))
             await ctx.send(embed=discord.Embed(

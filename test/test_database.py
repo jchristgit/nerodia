@@ -13,6 +13,7 @@ from praw.models import Redditor, RedditorList
 setup.init()
 
 from nerodia import database as db  # noqa
+from nerodia.models import session, Subreddit  # noqa
 
 
 def test_unknown_stream():
@@ -53,7 +54,7 @@ def test_subreddit_exists():
     assert not db.subreddit_exists("anotherunknownsubreddit")
 
 
-def test_subreddit_moderators():
+def test_get_subreddit_moderators():
     """
     Validates that the get_subreddit_moderators
     function properly returns a list of Moderators
@@ -68,6 +69,32 @@ def test_subreddit_moderators():
     assert len(three_mods) == 3
     assert isinstance(three_mods, RedditorList)
     assert all(isinstance(mod, Redditor) for mod in three_mods)
+
+
+def test_get_moderated_subreddits():
+    """
+    Validates that the get_moderated_subreddits
+    function properly returns a generator of
+    subreddits that a given User moderates,
+    given the condition that the subreddits
+    exist inside the bot's database.
+    """
+
+    session.add(Subreddit(
+        name="test",
+        follows="test-stream"
+    ))
+
+    assert "test" in [ms for ms in db.get_moderated_subreddits("xvvhiteboy")]
+
+    session.add(Subreddit(
+        name="UFOs",
+        follows="test-stream"
+    ))
+
+    assert [ms for ms in db.get_moderated_subreddits("xvvhiteboy")] == ["test", "UFOs"]
+
+    session.rollback()
 
 
 setup.finish()

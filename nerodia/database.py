@@ -6,7 +6,7 @@ when the data is not stored yet.
 """
 
 import functools
-from typing import Optional
+from typing import Generator, Optional
 
 from praw.models import RedditorList
 from prawcore.exceptions import NotFound
@@ -77,7 +77,7 @@ def subreddit_exists(subreddit_name: str) -> bool:
     return True
 
 
-@functools.lru_cache(maxsize=128)
+@functools.lru_cache()
 def get_subreddit_moderators(subreddit_name: str) -> Optional[RedditorList]:
     """
     Returns a list of Moderators for the given Subreddit.
@@ -134,25 +134,56 @@ def remove_dr_connection(discord_id: int):
     db.session.commit()
 
 
-def has_reddit_connected(discord_id: int) -> bool:
+def get_reddit_name(discord_id: int) -> Optional[str]:
     """
-    Checks whether the given discord ID
-    has a reddit account connected with
-    them in the database.
+    Returns the reddit name for the given
+    Discord ID, or `None` if no database
+    entry for the Discord ID exists.
 
     Arguments:
-        discord_id (int): The discord ID for which to check.
+        discord_id (int):
+            The Discord ID for the user whose reddit name should be returned.
 
     Returns:
-        bool: Whether the given ID has a reddit account associated with them.
+        Optional[str]:
+            The reddit name associated with the given Discord ID.
 
-    Notes:
-        Since this function is only called on the
-        main thread (in the discord Bot, specifically
-        the Nerodia cog), this does not use
-        any locking mechanism.
+    Note:
+        To check whether the user has a reddit account
+        associated with them, simply check whether the returned
+        value of this function is `None`.
     """
 
     return db.session.query(db.DRConnection) \
         .filter(db.DRConnection.discord_id == discord_id) \
-        .first() is not None
+        .first()
+
+
+def get_moderated_subreddits(reddit_name: str) -> Generator[str, None, None]:
+    """
+    Returns a generator of Subreddits that the given
+    reddit user is known to moderate by the
+    database contents, since (from what I know)
+    the reddit API does not provide any means
+    of obtaining the moderated subreddits of a redditor.
+
+    Arguments:
+        reddit_name (str):
+            The Redditor whose moderated subreddits should be returned.
+
+    Returns:
+        Generator[str]:
+            A generator of subreddit names, for example `askreddit` or `pics`.
+    """
+
+    # Since SQLAlchemy returns a list of tuples when querying for a single
+    # attribute, such as `db.Subreddit.name` in this case, we flatten the
+    # list using a generator so we have a list of known subreddits.
+    all_subs = (
+        n for name_tuple in db.session.query(db.Subreddit.name).all() for n in name_tuple
+    )
+    return (
+        sub_name
+        for sub_name in all_subs
+        if reddit_name in (r.name for r in get_subreddit_moderators(sub_name))
+    )

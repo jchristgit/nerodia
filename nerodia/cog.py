@@ -12,7 +12,7 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
 from . import util
-from .database import add_dr_connection, remove_dr_connection, has_reddit_connected
+from .database import add_dr_connection, get_moderated_subreddits, get_reddit_name, remove_dr_connection
 from .util import (
     remove_token,
     token_dict, token_lock,
@@ -31,6 +31,12 @@ DM_ONLY_EMBED = discord.Embed(
     title="Cannot connect accounts:",
     description="For safety reasons, this command can "
                 "only be used in private messages.",
+    colour=discord.Colour.red()
+)
+NO_CONNECTION_EMBED = discord.Embed(
+    title="Failed to run command:",
+    description="This command requires you to have a reddit account "
+                "connected through the `connectreddit` command.",
     colour=discord.Colour.red()
 )
 NO_PM_IN_TIME_EMBED = discord.Embed(
@@ -114,17 +120,14 @@ async def wait_for_add(user_id: str, timeout: int = VERIFY_TIMEOUT) -> Optional[
 
     timeout_ctr = timeout * 60
     while timeout_ctr > 0:
-        print("wait for add: sleeping for 5 seconds.")
         await asyncio.sleep(5)
         timeout_ctr -= 5
         with verify_lock:
             user = verify_dict.get(user_id)
 
         if user is not None:
-            print("wait for add: found user.")
             with verify_lock:
                 del verify_dict[user_id]
-            print("wait for add: removed user from verify dict.")
 
             return user
 
@@ -141,7 +144,7 @@ class Nerodia:
         print("[DISCORD] Loaded Commands.")
 
     @commands.command(name="connectreddit")
-    @commands.cooldown(rate=1, per=5. * 60, type=BucketType.user)
+    @commands.cooldown(rate=2, per=5. * 60, type=BucketType.user)
     async def connect_reddit(self, ctx):
         """
         Connects your Discord account to your reddit account.
@@ -160,7 +163,7 @@ class Nerodia:
 
         if not isinstance(ctx.message.channel, discord.abc.PrivateChannel):
             return await ctx.send(embed=DM_ONLY_EMBED)
-        elif has_reddit_connected(ctx.message.author.id):
+        elif get_reddit_name(ctx.message.author.id) is not None:
             return await ctx.send(embed=ALREADY_CONNECTED_EMBED)
 
         token = util.random_string()
@@ -170,7 +173,6 @@ class Nerodia:
         with token_lock:
             token_dict[author_id] = token
 
-        print("discord: waiting for verification")
         reddit_name = await wait_for_add(author_id)
         remove_token(author_id)
 
@@ -191,7 +193,7 @@ class Nerodia:
         your Discord account, if connected.
         """
 
-        if not has_reddit_connected(ctx.message.author.id):
+        if get_reddit_name(ctx.message.author.id) is None:
             return await ctx.send(embed=discord.Embed(
                 title="Failed to disconnect:",
                 description="You do not have an account connected.",
@@ -204,6 +206,40 @@ class Nerodia:
                 description="Your reddit account was successfully "
                             "disconnected from your Discord ID.",
                 colour=discord.Colour.green()
+            ))
+
+    @commands.group(aliases=["db"])
+    async def dashboard(self, ctx, subreddit_name: str=None):
+        """
+        Displays a dashboard for all information
+        about a connected reddit account, such as
+        which subreddits you moderate.
+
+        To get a dashboard on a per-subreddit basis,
+        use `db subname`, for example `db askreddit`.
+
+        This command requires you to have a reddit
+        account connected to your Discord ID through
+        the `connectreddit` command.
+        """
+
+        reddit_name = get_reddit_name(ctx.message.author.id)
+        if reddit_name is None:
+            await ctx.send(embed=NO_CONNECTION_EMBED)
+        elif subreddit_name is not None:
+            pass
+        else:
+            moderated_subs = '\n'.join(get_moderated_subreddits(reddit_name))
+            await ctx.send(embed=discord.Embed(
+                colour=discord.Colour.blue()
+            ).set_author(
+                name=f"Dashboard for {reddit_name}",
+                url=f"https://reddit.com/u/{reddit_name}",
+                icon_url=ctx.message.author.avatar_url
+            ).add_field(
+                name="Moderated Subreddits",
+                value=('• ' + moderated_subs) if moderated_subs else "*No known moderated Subreddits* :(",
+                inline=False
             ))
 
 

@@ -245,12 +245,19 @@ class Nerodia:
                     url=f"https://reddit.com/r/{subreddit_name}"
                 ).add_field(
                     name="Subreddit Moderators",
-                    value='• ' + '\n• '.join(r.name for r in get_subreddit_moderators(subreddit_name))
+                    value='• ' + '\n• '.join(
+                        r.name for r in get_subreddit_moderators(subreddit_name)
+                    )
                 ))
             else:
                 await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
         else:
-            moderated_subs = '\n'.join(get_moderated_subreddits(reddit_name))
+            modded_sub_list = '\n'.join(get_moderated_subreddits(reddit_name))
+            if modded_sub_list:
+                moderated_subs = "• " + modded_sub_list
+            else:
+                moderated_subs = "*No known moderated Subreddits* :("
+
             await ctx.send(embed=discord.Embed(
                 colour=discord.Colour.blue()
             ).set_author(
@@ -259,9 +266,14 @@ class Nerodia:
                 icon_url=ctx.message.author.avatar_url
             ).add_field(
                 name="Moderated Subreddits",
-                value=('• ' + moderated_subs) if moderated_subs else "*No known moderated Subreddits* :(",
+                value=moderated_subs,
                 inline=False
             ))
+
+    @commands.command()
+    async def follow(self, ctx, *stream_names: str):
+        print(stream_names)
+        pass
 
 
 def setup(bot: commands.Bot):

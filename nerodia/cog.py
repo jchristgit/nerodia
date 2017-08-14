@@ -15,7 +15,7 @@ from . import util
 from .database import (
     add_dr_connection, remove_dr_connection,
     get_moderated_subreddits, get_reddit_name, get_subreddit_moderators,
-    subreddit_exists
+    stream_exists, subreddit_exists
 )
 from .util import (
     remove_token,
@@ -48,9 +48,14 @@ NO_PM_IN_TIME_EMBED = discord.Embed(
     description="No verification PM was received in time.",
     colour=discord.Colour.red()
 )
+NOT_MODERATOR_EMBED = discord.Embed(
+    title="Failed to change Subreddit settings:",
+    description="You need to be a Moderator on the Subreddit to use this Command.",
+    colour=discord.Colour.red()
+)
 UNKNOWN_SUBREDDIT_EMBED = discord.Embed(
-    title="Failed to get subreddit information:",
-    description="Unknown Subreddit.",
+    title="Failed to execute Command:",
+    description="The Subreddit you passed to the command does not appear to exist.",
     colour=discord.Colour.red()
 )
 
@@ -271,9 +276,30 @@ class Nerodia:
             ))
 
     @commands.command()
-    async def follow(self, ctx, *stream_names: str):
-        print(stream_names)
-        pass
+    async def follow(self, ctx, subreddit_name: str, *stream_names: str):
+        """
+        Follows the given stream with the given subreddit name.
+        Of course, this only works if you are a moderator on the given subreddit.
+        Also supports passing a list of stream names, for example:
+            `follow imaqtpie bardmains discordapp`
+        Only stream names for streams that exist will be followed.
+        The streams where the bot could not validate will be shown
+        in the bot's response, so you can check if you made any mistakes.
+
+        Following a stream effectively means that the Bot will update
+        the specified Subreddit's sidebar whenever the Stream goes
+        online or offline in order to keep the subreddit updated.
+        """
+
+        reddit_name = get_reddit_name(ctx.message.author.id)
+        if reddit_name is None:
+            return await ctx.send(embed=NO_CONNECTION_EMBED)
+        elif not subreddit_exists(subreddit_name):
+            return await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
+        elif reddit_name not in get_subreddit_moderators(subreddit_name):
+            return await ctx.send(embed=NOT_MODERATOR_EMBED)
+
+        valid_streams = filter(stream_exists, stream_names)
 
 
 def setup(bot: commands.Bot):

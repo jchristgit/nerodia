@@ -51,6 +51,21 @@ def get_stream_id(stream_name: str) -> Optional[int]:
     return db_stream.stream_id
 
 
+def stream_exists(stream_name: str) -> bool:
+    """
+    Returns a boolean indicating whether the
+    given stream exists or not.
+
+    Arguments:
+        stream_name (str): The Stream that should be looked up.
+
+    Returns:
+        bool: Whether the given Stream exists.
+    """
+
+    return get_stream_id(stream_name) is not None
+
+
 @functools.lru_cache(maxsize=32)
 def subreddit_exists(subreddit_name: str) -> bool:
     """

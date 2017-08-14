@@ -154,9 +154,12 @@ def get_reddit_name(discord_id: int) -> Optional[str]:
         value of this function is `None`.
     """
 
-    return db.session.query(db.DRConnection) \
+    user = db.session.query(db.DRConnection) \
         .filter(db.DRConnection.discord_id == discord_id) \
         .first()
+    if user is not None:
+        return user.reddit_name
+    return None
 
 
 def get_moderated_subreddits(reddit_name: str) -> Generator[str, None, None]:

@@ -23,7 +23,7 @@ verify_dict = dict()
 verify_lock = threading.Lock()
 
 
-def random_string(length: int = 5):
+def random_string(length: int = 15):
     """
     Returns a string made up from
     random characters.
@@ -31,11 +31,11 @@ def random_string(length: int = 5):
     Arguments:
         length (int):
             The length of the string to generate.
-            Defaults to 5.
+            Defaults to 15.
 
     Returns:
         str: A random string, as long as specified
-             with the `length` argument (default: 5).
+             with the `length` argument (default: 15).
     """
 
     return ''.join(random.choice(string.ascii_letters) for _ in range(length))

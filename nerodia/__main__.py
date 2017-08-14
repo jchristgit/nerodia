@@ -34,6 +34,7 @@ if __name__ == '__main__':
 
     discord_bot = NerodiaDiscordBot(discord_token)
     discord_bot.run()
+    print("Stopped the Discord Bot. Hit ^C again to stop the Workers.")
 
     try:
         time.sleep(SECONDS_IN_A_YEAR)

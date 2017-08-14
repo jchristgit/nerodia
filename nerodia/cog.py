@@ -9,6 +9,7 @@ import discord
 from typing import Optional
 
 from discord.ext import commands
+from discord.ext.commands.cooldowns import BucketType
 
 from . import util
 from .database import add_dr_connection, remove_dr_connection, has_reddit_connected
@@ -140,6 +141,7 @@ class Nerodia:
         print("[DISCORD] Loaded Commands.")
 
     @commands.command(name="connectreddit")
+    @commands.cooldown(rate=1, per=5. * 60, type=BucketType.user)
     async def connect_reddit(self, ctx):
         """
         Connects your Discord account to your reddit account.

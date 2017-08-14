@@ -48,6 +48,12 @@ NO_PM_IN_TIME_EMBED = discord.Embed(
     description="No verification PM was received in time.",
     colour=discord.Colour.red()
 )
+UNKNOWN_SUBREDDIT_EMBED = discord.Embed(
+    title="Failed to get subreddit information:",
+    description="Unknown Subreddit.",
+    colour=discord.Colour.red()
+)
+
 PM_URL = "https://www.reddit.com/message/compose?to=Botyy&subject=verification&message="
 
 # The timeout for the reddit verification, in minutes
@@ -241,6 +247,8 @@ class Nerodia:
                     name="Subreddit Moderators",
                     value='• ' + '\n• '.join(r.name for r in get_subreddit_moderators(subreddit_name))
                 ))
+            else:
+                await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
         else:
             moderated_subs = '\n'.join(get_moderated_subreddits(reddit_name))
             await ctx.send(embed=discord.Embed(

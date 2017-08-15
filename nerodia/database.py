@@ -200,7 +200,7 @@ def get_moderated_subreddits(reddit_name: str) -> Generator[str, None, None]:
     # attribute, such as `db.Subreddit.name` in this case, we flatten the
     # list using a generator so we have a list of known subreddits.
     all_subs = (
-        n for name_tuple in db.session.query(db.Subreddit.name).all() for n in name_tuple
+        n for name_tuple in db.session.query(db.Subreddit.name).distinct().all() for n in name_tuple
     )
     return (
         sub_name

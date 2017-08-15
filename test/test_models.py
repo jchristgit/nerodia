@@ -66,6 +66,8 @@ class StreamModelTestCase(unittest.TestCase):
         self.assertGreater(self.test_stream.added_on, ONE_MINUTE_AGO)
         self.assertLess(self.test_stream.added_on, datetime.datetime.now())
 
+        self.assertEqual(len(db.session.query(db.Stream).all()), 1)
+
 
 class SubredditModelTestCase(unittest.TestCase):
     """
@@ -131,6 +133,8 @@ class SubredditModelTestCase(unittest.TestCase):
         self.assertEqual(self.test_sub.follows, "test-stream")
         self.assertListEqual(self.test_sub.all_follows.all(), [])
 
+        self.assertEqual(len(db.session.query(db.Subreddit).all()), 1)
+
 
 class DRConnectionModelTestCase(unittest.TestCase):
     """
@@ -176,3 +180,5 @@ class DRConnectionModelTestCase(unittest.TestCase):
 
         self.assertEqual(self.test_conn.discord_id, 1337)
         self.assertEqual(self.test_conn.reddit_name, "1337")
+
+        self.assertEqual(len(db.session.query(db.DRConnection).all()), 1)

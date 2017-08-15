@@ -11,10 +11,7 @@ reset when the tests are done.
 import datetime
 import unittest
 
-from . import setup
-setup.init()
-
-from nerodia import models as db  # noqa
+from nerodia import models as db
 
 
 ONE_MINUTE_AGO = datetime.datetime.now() - datetime.timedelta(minutes=1)
@@ -179,6 +176,3 @@ class DRConnectionModelTestCase(unittest.TestCase):
 
         self.assertEqual(self.test_conn.discord_id, 1337)
         self.assertEqual(self.test_conn.reddit_name, "1337")
-
-
-setup.finish()

@@ -1,6 +1,8 @@
 __pycache__/
 .cache/
 .idea/
+.tox/
 config.json
 data/*.db
-test/*.db
+test/test.db
+venv/

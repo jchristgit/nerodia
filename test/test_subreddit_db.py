@@ -3,10 +3,6 @@ import unittest
 
 from praw.models import RedditorList, Redditor
 
-from . import setup
-
-setup.init()
-
 from nerodia import database as db  # noqa
 from nerodia.models import session, Subreddit  # noqa
 
@@ -82,6 +78,3 @@ class SubredditDatabaseTestCase(unittest.TestCase):
         self.assertEqual(
             [ms for ms in db.get_moderated_subreddits("xvvhiteboy")], ["test"]
         )
-
-
-setup.finish()

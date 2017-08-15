@@ -1,11 +1,7 @@
 import unittest
 
-from . import setup
-
-setup.init()
-
-from nerodia import database as db  # noqa
-from nerodia.models import session, Subreddit  # noqa
+from nerodia import database as db
+from nerodia.models import session, Subreddit
 
 
 class DatabaseFollowingTestCase(unittest.TestCase):
@@ -14,6 +10,3 @@ class DatabaseFollowingTestCase(unittest.TestCase):
 
     def tearDown(self):
         pass
-
-
-setup.finish()

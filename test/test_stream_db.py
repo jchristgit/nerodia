@@ -9,11 +9,7 @@ or the Twitch API.
 
 import unittest
 
-from . import setup
-
-setup.init()
-
-from nerodia import database as db  # noqa
+from nerodia import database as db
 
 
 class StreamDatabaseTestCase(unittest.TestCase):
@@ -34,6 +30,3 @@ class StreamDatabaseTestCase(unittest.TestCase):
         self.assertIsInstance(db.get_stream_id("volcyy"), int)
 
         self.assertIsNone(db.get_stream_id("definitelyunknownstreamthatwillneverexist"))
-
-
-setup.finish()

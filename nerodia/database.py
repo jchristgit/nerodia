@@ -277,8 +277,6 @@ def unfollow(subreddit_name: str, *stream_names: str):
 
     q = db.session.query(db.Subreddit) \
         .filter(db.Subreddit.name == subreddit_name) \
-        .filter(db.Subreddit.follows.in_(stream_names))
-    print(q)
-    print(q.all())
-    q.delete(synchronize_session='fetch')
+        .filter(db.Subreddit.follows.in_(stream_names)) \
+        .delete(synchronize_session='fetch')
     db.session.commit()

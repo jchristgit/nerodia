@@ -83,7 +83,9 @@ def subreddit_exists(subreddit_name: str) -> bool:
             Whether the Subreddit exists or not.
     """
 
-    db_sub = db.session.query(db.Subreddit.name.ilike(subreddit_name)).first()
+    db_sub = db.session.query(db.Subreddit) \
+        .filter(db.Subreddit.name == subreddit_name) \
+        .first()
     if db_sub is None:
         try:
             reddit.subreddits.search_by_name(subreddit_name, exact=True)
@@ -227,12 +229,12 @@ def get_subreddit_follows(sub_name: str) -> List[str]:
     return [s for row_tuple in result for s in row_tuple]
 
 
-def follow(subreddit_name, *stream_names: str):
+def follow(subreddit_name: str, *stream_names: str):
     """
     Follows the given argument list of streams
     with the given subreddit. Make sure to validate
     the identity of whoever invokes the function
-    as a Moderator of the Subreddit before.
+    as a Moderator of the Subreddit before calling it.
 
     This adds a total of len(stream_names) rows in the following format
     to the database, where stream_name is an element of stream_names:
@@ -248,4 +250,35 @@ def follow(subreddit_name, *stream_names: str):
     db.session.add_all(
         db.Subreddit(name=subreddit_name, follows=stream) for stream in stream_names
     )
+    db.session.commit()
+
+
+def unfollow(subreddit_name: str, *stream_names: str):
+    """
+    Unfollows the given argument list of streams
+    with the given subreddit. As for the follow
+    function, make sure to validate the identity
+    of whoever invokes the function as a Moderator
+    of the given subreddit before calling it.
+
+    If the Subreddit is unknown, this will not
+    change anything. Additionally, when streams
+    are passed that the Subreddit is not following,
+    nothing will happen either, since the rows
+    are filtered before the operation is performed.
+
+    Arguments:
+        subreddit_name (str):
+            The Subreddit for which the given streams should be unfollowed.
+        stream_names (str):
+            An argument list of stream names that should be unfollowed,
+            if they are being followed at the time this function is called.
+    """
+
+    q = db.session.query(db.Subreddit) \
+        .filter(db.Subreddit.name == subreddit_name) \
+        .filter(db.Subreddit.follows.in_(stream_names))
+    print(q)
+    print(q.all())
+    q.delete(synchronize_session='fetch')
     db.session.commit()

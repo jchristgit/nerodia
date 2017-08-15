@@ -9,6 +9,7 @@ reset when the tests are done.
 """
 
 import datetime
+import unittest
 
 from . import setup
 setup.init()
@@ -19,107 +20,165 @@ from nerodia import models as db  # noqa
 ONE_MINUTE_AGO = datetime.datetime.now() - datetime.timedelta(minutes=1)
 
 
-def test_stream_columns():
+class StreamModelTestCase(unittest.TestCase):
     """
-    Validates that the rows in the
-    Stream table have the
-    correct types and values.
-    """
-
-    new_stream = db.Stream(name="test-stream", id=1337)
-    db.session.add(new_stream)
-    stream = db.session.query(db.Stream).filter_by(name="test-stream").first()
-
-    assert isinstance(stream.name, str)
-    assert isinstance(stream.id, int)
-    assert isinstance(stream.followed_by.all(), list)
-    assert isinstance(stream.added_on, datetime.datetime)
-
-    assert stream.name == "test-stream"
-    assert stream.id == 1337
-    assert stream.followed_by.all() == []
-    assert stream.added_on > ONE_MINUTE_AGO
-    assert stream.added_on < datetime.datetime.now()
-
-    db.session.rollback()
-
-
-def test_subreddit_columns():
-    """
-    Validates that the rows in the
-    Subreddit table have the
-    correct types and values.
+    Contains tests for the Stream table
+    which holds information about Twitch
+    streams, namely their ID. This is
+    cached since the ID is necessary for
+    most API calls, despite only checking
+    the stream status is necessary.
     """
 
-    new_sub = db.Subreddit(name="test-sub", follows="test-stream")
-    db.session.add(new_sub)
-    sub = db.session.query(db.Subreddit).filter_by(name="test-sub").first()
+    def setUp(self):
+        """
+        Creates a new Stream with the name
+        "test-stream" and the id 1337.
+        Exposes it via the attribute `test_stream`.
+        """
 
-    assert isinstance(sub.id, int)
-    assert isinstance(sub.name, str)
-    assert isinstance(sub.all_follows.all(), list)
+        new_stream = db.Stream(name="test-stream", id=1337)
+        db.session.add(new_stream)
+        self.query = db.session.query(db.Stream)
+        self.test_stream = self.query.first()
 
-    assert sub.name == "test-sub"
-    assert sub.follows == "test-stream"
-    assert sub.all_follows.all() == []
+    def tearDown(self):
+        """"
+        Deletes the previously created
+        test stream to ensure that the
+        database does not grow infinitely.
+        """
 
-    db.session.rollback()
+        self.query.delete()
+
+    def test_columns(self):
+        """
+        Validates that the rows in the
+        Stream table have the
+        correct types and values.
+        """
+
+        self.assertIsInstance(self.test_stream.name, str)
+        self.assertIsInstance(self.test_stream.id, int)
+        self.assertIsInstance(self.test_stream.followed_by.all(), list)
+        self.assertIsInstance(self.test_stream.added_on, datetime.datetime)
+
+        self.assertEqual(self.test_stream.name, "test-stream")
+        self.assertEqual(self.test_stream.id, 1337)
+        self.assertListEqual(self.test_stream.followed_by.all(), [])
+        self.assertGreater(self.test_stream.added_on, ONE_MINUTE_AGO)
+        self.assertLess(self.test_stream.added_on, datetime.datetime.now())
 
 
-def test_drconnection_columns():
+class SubredditModelTestCase(unittest.TestCase):
     """
-    Validates that the rows in the
-    DRConnection table have the
-    correct types and values.
+    Tests the Subreddit database model,
+    which contains the name of a Subreddit
+    along with a single stream that the
+    Subreddit is following, resulting in
+    a one-to-many relationship: one sub-
+    reddit can follow many streams,
+    which typically results in tables like
+          name   |   follows
+        ---------+-------------
+        some-sub | first-stream
+        some-sub | second-stream
+        some-sub | third-stream
+    The ID attribute is ommitted as it is
+    generated automatically and not of
+    interest in queries run.
     """
 
-    new_dr_conn = db.DRConnection(discord_id=1337, reddit_name="1337")
-    db.session.add(new_dr_conn)
-    dr_conn = db.session.query(db.DRConnection).first()
+    def setUp(self):
+        """
+        Sets up the SubredditModelTestCase.
+        This creates a new subreddit with
+        the name "test-sub" following a
+        stream "test-stream" and inserts
+        it into the database. This is
+        cleaned up in the `tearDown` method.
+        """
 
-    assert isinstance(dr_conn.discord_id, int)
-    assert isinstance(dr_conn.reddit_name, str)
+        new_sub = db.Subreddit(name="test-sub", follows="test-stream")
+        db.session.add(new_sub)
+        self.query = db.session.query(db.Subreddit)
+        self.test_sub = self.query.first()
 
-    assert dr_conn.discord_id == 1337
-    assert dr_conn.reddit_name == "1337"
+    def tearDown(self):
+        """
+        Deletes the previously created
+        `test-sub` subreddit from the
+        table to ensure that it does
+        not fill up infinitely over
+        various test runs.
+        """
 
-    db.session.rollback()
+        self.query.delete()
+
+    def test_columns(self):
+        """
+        Validates that the columns of
+        the Subreddit table have the
+        correct type, and that the
+        newly created subreddit from
+        within the `setUp` method has
+        the correct attributes.
+        """
+
+        self.assertIsInstance(self.test_sub.id, int)
+        self.assertIsInstance(self.test_sub.name, str)
+        self.assertIsInstance(self.test_sub.follows, str)
+        self.assertIsInstance(self.test_sub.all_follows.all(), list)
+
+        self.assertEqual(self.test_sub.name, "test-sub")
+        self.assertEqual(self.test_sub.follows, "test-stream")
+        self.assertListEqual(self.test_sub.all_follows.all(), [])
 
 
-def test_adds_stream():
+class DRConnectionModelTestCase(unittest.TestCase):
     """
-    Validates that a new stream
-    is added properly and queries
-    return the stream.
+    The test case for the DRConnection
+    (short for DiscordRedditConnection)
+    table and its rows.
     """
 
-    new_stream = db.Stream(name="good-games", id=1000)
-    db.session.add(new_stream)
+    def setUp(self):
+        """
+        Sets up the test case by
+        creating a new DRConnection
+        and inserting it into the
+        database. This is cleaned
+        up in the `tearDown` method.
+        """
 
-    assert new_stream in db.session.query(db.Stream).all()
-    assert db.session.query(db.Stream).filter_by(name="good-games").first() == new_stream
-    assert db.session.query(db.Stream).filter_by(id=1000).first() == new_stream
+        new_conn = db.DRConnection(discord_id=1337, reddit_name="1337")
+        db.session.add(new_conn)
+        self.query = db.session.query(db.DRConnection)
+        self.test_conn = self.query.first()
 
-    db.session.rollback()
+    def tearDown(self):
+        """
+        Removes the previously created
+        `DRConnection` row from the
+        table to ensure that the database
+        does not fill up infinitely.
+        """
 
+        self.query.delete()
 
-def test_adds_subreddit():
-    """
-    Similiar to the above function,
-    this validates that a new
-    subreddit is added properly and
-    queries return the subreddit.
-    """
+    def test_columns(self):
+        """
+        Validates that the columns of the
+        `DRConnection` table have the correct
+        types, and that the inserted (in `setUp`)
+        row has the correct values as passed along.
+        """
 
-    new_sub = db.Subreddit(name="some-sub", follows="unknown-stream")
-    db.session.add(new_sub)
+        self.assertIsInstance(self.test_conn.discord_id, int)
+        self.assertIsInstance(self.test_conn.reddit_name, str)
 
-    assert db.session.query(db.Subreddit).first() == new_sub
-    assert new_sub in db.session.query(db.Subreddit).all()
-    assert db.session.query(db.Subreddit).filter_by(name="some-sub").first() == new_sub
-    assert db.session.query(db.Subreddit).filter_by(follows="unknown-stream").first() == new_sub
-
-    db.session.rollback()
+        self.assertEqual(self.test_conn.discord_id, 1337)
+        self.assertEqual(self.test_conn.reddit_name, "1337")
 
 
 setup.finish()

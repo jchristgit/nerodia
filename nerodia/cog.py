@@ -12,12 +12,7 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
 from . import util
-from .database import (
-    add_dr_connection, remove_dr_connection,
-    get_moderated_subreddits, get_reddit_name,
-    get_subreddit_moderators, get_subreddit_follows,
-    stream_exists, subreddit_exists
-)
+from . import database as db
 from .util import (
     remove_token,
     token_dict, token_lock,
@@ -179,7 +174,7 @@ class Nerodia:
 
         if not isinstance(ctx.message.channel, discord.abc.PrivateChannel):
             return await ctx.send(embed=DM_ONLY_EMBED)
-        elif get_reddit_name(ctx.message.author.id) is not None:
+        elif db.get_reddit_name(ctx.message.author.id) is not None:
             return await ctx.send(embed=ALREADY_CONNECTED_EMBED)
 
         token = util.random_string()
@@ -195,7 +190,7 @@ class Nerodia:
         if reddit_name is None:
             await ctx.send(embed=NO_PM_IN_TIME_EMBED)
         else:
-            add_dr_connection(ctx.message.author.id, reddit_name)
+            db.add_dr_connection(ctx.message.author.id, reddit_name)
             await ctx.send(embed=discord.Embed(
                 title="Verified successfully:",
                 description=f"Your reddit name is {reddit_name}!",
@@ -209,14 +204,14 @@ class Nerodia:
         your Discord account, if connected.
         """
 
-        if get_reddit_name(ctx.message.author.id) is None:
+        if db.get_reddit_name(ctx.message.author.id) is None:
             return await ctx.send(embed=discord.Embed(
                 title="Failed to disconnect:",
                 description="You do not have an account connected.",
                 colour=discord.Colour.red()
             ))
         else:
-            remove_dr_connection(ctx.message.author.id)
+            db.remove_dr_connection(ctx.message.author.id)
             return await ctx.send(embed=discord.Embed(
                 title="Disconnected!",
                 description="Your reddit account was successfully "
@@ -239,11 +234,11 @@ class Nerodia:
         the `connectreddit` command.
         """
 
-        reddit_name = get_reddit_name(ctx.message.author.id)
+        reddit_name = db.get_reddit_name(ctx.message.author.id)
         if reddit_name is None:
             await ctx.send(embed=NO_CONNECTION_EMBED)
         elif subreddit_name is not None:
-            if subreddit_exists(subreddit_name):
+            if db.subreddit_exists(subreddit_name):
                 await ctx.send(embed=discord.Embed(
                     colour=discord.Colour.blue()
                 ).set_author(
@@ -252,13 +247,16 @@ class Nerodia:
                 ).add_field(
                     name="Subreddit Moderators",
                     value='• ' + '\n• '.join(
-                        r.name for r in get_subreddit_moderators(subreddit_name)
+                        r.name for r in db.get_subreddit_moderators(subreddit_name)
                     )
+                ).add_field(
+                    name="Followed Streams",
+                    value='• ' + '\n• '.join(db.get_subreddit_follows(subreddit_name))
                 ))
             else:
                 await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
         else:
-            modded_sub_list = '\n'.join(get_moderated_subreddits(reddit_name))
+            modded_sub_list = '\n'.join(db.get_moderated_subreddits(reddit_name))
             if modded_sub_list:
                 moderated_subs = "• " + modded_sub_list
             else:
@@ -292,17 +290,19 @@ class Nerodia:
         online or offline in order to keep the subreddit updated.
         """
 
-        reddit_name = get_reddit_name(ctx.message.author.id)
+        reddit_name = db.get_reddit_name(ctx.message.author.id)
         if reddit_name is None:
             return await ctx.send(embed=NO_CONNECTION_EMBED)
-        elif not subreddit_exists(subreddit_name):
+        elif not db.subreddit_exists(subreddit_name):
             return await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
-        elif reddit_name not in get_subreddit_moderators(subreddit_name):
+        elif reddit_name not in db.get_subreddit_moderators(subreddit_name):
             return await ctx.send(embed=NOT_MODERATOR_EMBED)
 
-        valid_streams = (s for s in stream_names if stream_exists(s))
-        present_follows = get_subreddit_follows(subreddit_name)
+        valid_streams = (s for s in stream_names if db.stream_exists(s))
+        present_follows = db.get_subreddit_follows(subreddit_name)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
+
+        db.follow(subreddit_name, *unique_streams)
         await ctx.send(embed=discord.Embed(
             title="Follow command",
             colour=discord.Colour.blue(),
@@ -314,6 +314,10 @@ class Nerodia:
             name="Failed to follow:",
             value="• " + '\n• '.join(s for s in stream_names if s not in unique_streams)
         ))
+
+    @commands.command()
+    async def unfollow(self, ctx, subreddit_name: str, *stream_names: str):
+        pass
 
 
 def setup(bot: commands.Bot):

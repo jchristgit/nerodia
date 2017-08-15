@@ -221,4 +221,31 @@ def get_subreddit_follows(sub_name: str) -> List[str]:
             A list of Twitch stream names that the subreddit is following.
     """
 
-    return list(db.session.query(db.Subreddit.follows).filter_by(name=sub_name))
+    # As above, we flatten the result of the query since SQLAlchemy
+    # returns the result as a list of tuples with a single element.
+    result = db.session.query(db.Subreddit.follows).filter_by(name=sub_name)
+    return [s for row_tuple in result for s in row_tuple]
+
+
+def follow(subreddit_name, *stream_names: str):
+    """
+    Follows the given argument list of streams
+    with the given subreddit. Make sure to validate
+    the identity of whoever invokes the function
+    as a Moderator of the Subreddit before.
+
+    This adds a total of len(stream_names) rows in the following format
+    to the database, where stream_name is an element of stream_names:
+        subreddit_name | stream_name
+
+    Arguments:
+        subreddit_name (str):
+            The Subreddit for which the given streams should be followed.
+        stream_names (str):
+            An argument list of stream names that should be followed.
+    """
+
+    db.session.add_all(
+        db.Subreddit(name=subreddit_name, follows=stream) for stream in stream_names
+    )
+    db.session.commit()

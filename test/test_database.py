@@ -97,4 +97,22 @@ def test_get_moderated_subreddits():
     session.rollback()
 
 
+def test_follow():
+    """
+    Validates that the follow function
+    properly inserts new rows in the
+    Subreddit table containing a single
+    subreddit name and every stream that
+    was passed to the function.
+    """
+
+    assert db.get_subreddit_follows("test") == []
+    assert db.get_subreddit_follows("notknownsubreddit") == []
+
+    db.follow("test", "discordapp", "summonersinnlive")
+    assert db.get_subreddit_follows("test") == ["discordapp", "summonersinnlive"]
+
+    session.rollback()
+
+
 setup.finish()

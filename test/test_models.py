@@ -48,11 +48,10 @@ class StreamModelTestCase(unittest.TestCase):
 
         self.query.delete()
 
-    def test_columns(self):
+    def test_column_types(self):
         """
-        Validates that the rows in the
-        Stream table have the
-        correct types and values.
+        Validates that the columns in the
+        Stream table have the correct types.
         """
 
         self.assertIsInstance(self.test_stream.name, str)
@@ -60,11 +59,24 @@ class StreamModelTestCase(unittest.TestCase):
         self.assertIsInstance(self.test_stream.followed_by.all(), list)
         self.assertIsInstance(self.test_stream.added_on, datetime.datetime)
 
+    def test_column_values(self):
+        """
+        Validates that the columns in the
+        Stream table have the correct values
+        as set up in the `setUp` method.
+        """
+
         self.assertEqual(self.test_stream.name, "test-stream")
         self.assertEqual(self.test_stream.id, 1337)
         self.assertListEqual(self.test_stream.followed_by.all(), [])
         self.assertGreater(self.test_stream.added_on, ONE_MINUTE_AGO)
         self.assertLess(self.test_stream.added_on, datetime.datetime.now())
+
+    def test_total_rows(self):
+        """
+        Validates that we only have a single
+        row inside the Stream table.
+        """
 
         self.assertEqual(len(db.session.query(db.Stream).all()), 1)
 
@@ -114,20 +126,23 @@ class SubredditModelTestCase(unittest.TestCase):
 
         self.query.delete()
 
-    def test_columns(self):
+    def test_column_types(self):
         """
-        Validates that the columns of
-        the Subreddit table have the
-        correct type, and that the
-        newly created subreddit from
-        within the `setUp` method has
-        the correct attributes.
+        Validates that the columns of the
+        Subreddit table have the correct types.
         """
 
         self.assertIsInstance(self.test_sub.id, int)
         self.assertIsInstance(self.test_sub.name, str)
         self.assertIsInstance(self.test_sub.follows, str)
         self.assertIsInstance(self.test_sub.all_follows.all(), list)
+
+    def test_column_values(self):
+        """
+        Validates that the columns of the
+        Subreddit table have the correct values
+        as set up in the `setUp` method.
+        """
 
         self.assertEqual(self.test_sub.name, "test-sub")
         self.assertEqual(self.test_sub.follows, "test-stream")
@@ -167,18 +182,28 @@ class DRConnectionModelTestCase(unittest.TestCase):
 
         self.query.delete()
 
-    def test_columns(self):
+    def test_column_types(self):
         """
         Validates that the columns of the
-        `DRConnection` table have the correct
-        types, and that the inserted (in `setUp`)
-        row has the correct values as passed along.
+        `DRConnection` table have the correct types.
         """
 
         self.assertIsInstance(self.test_conn.discord_id, int)
         self.assertIsInstance(self.test_conn.reddit_name, str)
 
+    def test_column_values(self):
+        """
+        Validates that the previously inserted
+        `DRConnection` row has the correct values.
+        """
+
         self.assertEqual(self.test_conn.discord_id, 1337)
         self.assertEqual(self.test_conn.reddit_name, "1337")
+
+    def test_total_rows(self):
+        """
+        Validates that there is only one
+        row in the database.
+        """
 
         self.assertEqual(len(db.session.query(db.DRConnection).all()), 1)

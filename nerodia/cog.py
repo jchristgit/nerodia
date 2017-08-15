@@ -14,7 +14,8 @@ from discord.ext.commands.cooldowns import BucketType
 from . import util
 from .database import (
     add_dr_connection, remove_dr_connection,
-    get_moderated_subreddits, get_reddit_name, get_subreddit_moderators,
+    get_moderated_subreddits, get_reddit_name,
+    get_subreddit_moderators, get_subreddit_follows,
     stream_exists, subreddit_exists
 )
 from .util import (
@@ -299,7 +300,20 @@ class Nerodia:
         elif reddit_name not in get_subreddit_moderators(subreddit_name):
             return await ctx.send(embed=NOT_MODERATOR_EMBED)
 
-        valid_streams = filter(stream_exists, stream_names)
+        valid_streams = (s for s in stream_names if stream_exists(s))
+        present_follows = get_subreddit_follows(subreddit_name)
+        unique_streams = set(s for s in valid_streams if s not in present_follows)
+        await ctx.send(embed=discord.Embed(
+            title="Follow command",
+            colour=discord.Colour.blue(),
+            timestamp=datetime.datetime.now()
+        ).add_field(
+            name="Newly followed:",
+            value='• ' + '\n• '.join(unique_streams)
+        ).add_field(
+            name="Failed to follow:",
+            value="• " + '\n• '.join(s for s in stream_names if s not in unique_streams)
+        ))
 
 
 def setup(bot: commands.Bot):

@@ -6,7 +6,7 @@ when the data is not stored yet.
 """
 
 import functools
-from typing import Generator, Optional
+from typing import Generator, List, Optional
 
 from praw.models import RedditorList
 from prawcore.exceptions import NotFound
@@ -205,3 +205,20 @@ def get_moderated_subreddits(reddit_name: str) -> Generator[str, None, None]:
         for sub_name in all_subs
         if reddit_name in (r.name for r in get_subreddit_moderators(sub_name))
     )
+
+
+def get_subreddit_follows(sub_name: str) -> List[str]:
+    """
+    Returns a List of Twitch stream names
+    that the given subreddit is following.
+
+    Arguments:
+        sub_name (str):
+            The Subreddit for which to obtain the follows.
+
+    Returns:
+        List[str]:
+            A list of Twitch stream names that the subreddit is following.
+    """
+
+    return list(db.session.query(db.Subreddit.follows).filter_by(name=sub_name))

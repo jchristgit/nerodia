@@ -312,12 +312,48 @@ class Nerodia:
             value='• ' + '\n• '.join(unique_streams)
         ).add_field(
             name="Failed to follow:",
-            value="• " + '\n• '.join(s for s in stream_names if s not in unique_streams)
+            value='• ' + '\n• '.join(s for s in stream_names if s not in unique_streams)
         ))
 
     @commands.command()
     async def unfollow(self, ctx, subreddit_name: str, *stream_names: str):
-        pass
+        """
+        Unfollows the given streams on the
+        given Subreddit. Of course, you must
+        be a Moderator on the Subreddit to
+        use this command. Like the follow
+        command, this support passing a list
+        of stream names, for example:
+            `unfollow imaqtpie discordapp`
+        Unfollowing a stream means that the
+        bot will no longer update the given
+        subreddit's sidebar when the stream
+        goes online or offline.
+        """
+
+        reddit_name = db.get_reddit_name(ctx.message.author.id)
+        if reddit_name is None:
+            return await ctx.send(embed=NO_CONNECTION_EMBED)
+        elif not db.subreddit_exists(subreddit_name):
+            return await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
+        elif reddit_name not in db.get_subreddit_moderators(subreddit_name):
+            return await ctx.send(embed=NOT_MODERATOR_EMBED)
+
+        unique_streams = set(stream_names)
+        old_follows = db.get_subreddit_follows(subreddit_name)
+        unfollowed = (s for s in unique_streams if s in old_follows)
+        db.unfollow(subreddit_name, *unique_streams)
+
+        await ctx.send(embed=discord.Embed(
+            title="Unfollow complete",
+            colour=discord.Colour.blue()
+        ).add_field(
+            name="Unfollowed Streams",
+            value='• ' + '\n •'.join(unfollowed)
+        ).add_field(
+            name="Failed to unfollow",
+            value='• ' + '\n •'.join(s for s in unique_streams if s not in unfollowed)
+        ))
 
 
 def setup(bot: commands.Bot):

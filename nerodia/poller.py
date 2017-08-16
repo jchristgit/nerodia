@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import Optional
+from typing import Optional, Union
 
 from .clients import twitch
 
@@ -29,7 +29,7 @@ def get_user_info(stream_name: str) -> Optional[TwitchUser]:
     return TwitchUser(name=user[0].name, id=user[0].id)
 
 
-def is_online(stream_id: int) -> bool:
+def is_online(stream: str) -> bool:
     """
     Checks whether the given stream is online.
     It is highly recommended to validate that
@@ -37,10 +37,10 @@ def is_online(stream_id: int) -> bool:
     as it will not perform any checks.
 
     Arguments:
-        stream_id (int): The stream ID for which to check
+        stream_id (str): The stream name for which to check
 
     Returns:
         bool: Whether the stream under the given ID is online.
     """
 
-    return twitch.streams.get_stream_by_user(stream_id) is not None
+    return twitch.streams.get_stream_by_user(get_user_info(stream).id) is not None

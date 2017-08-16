@@ -31,8 +31,8 @@ import threading
 import time
 from queue import Queue
 
+from . import database as db
 from . import poller
-from . import storage
 from .clients import reddit
 from .handlers import handle_message
 
@@ -152,8 +152,8 @@ class TwitchProducer(StoppableThread):
         print("[TwitchProducer] Ready.")
         stream_states = {}
         while not self.should_stop:
-            for stream_name in storage.all_follows():
-                stream_is_online: bool = poller.is_online(stream_name)
+            for stream_name in db.get_all_follows():
+                stream_is_online = poller.is_online(stream_name)
                 # Compare the Stream state to the last one known, ignore it if it wasn't found.
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:
                     event_queue.put(

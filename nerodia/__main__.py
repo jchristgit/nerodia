@@ -46,4 +46,5 @@ if __name__ == '__main__':
 
         for t in THREADS:
             t.stop()
+        for t in THREADS:
             t.join()

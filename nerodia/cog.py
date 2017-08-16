@@ -172,6 +172,8 @@ class Nerodia:
         to your Discord ID, for whatever reason.
         """
 
+        await ctx.trigger_typing()
+
         if not isinstance(ctx.message.channel, discord.abc.PrivateChannel):
             return await ctx.send(embed=DM_ONLY_EMBED)
         elif db.get_reddit_name(ctx.message.author.id) is not None:
@@ -204,6 +206,8 @@ class Nerodia:
         your Discord account, if connected.
         """
 
+        await ctx.trigger_typing()
+
         if db.get_reddit_name(ctx.message.author.id) is None:
             return await ctx.send(embed=discord.Embed(
                 title="Failed to disconnect:",
@@ -233,6 +237,8 @@ class Nerodia:
         account connected to your Discord ID through
         the `connectreddit` command.
         """
+
+        await ctx.trigger_typing()
 
         reddit_name = db.get_reddit_name(ctx.message.author.id)
         if reddit_name is None:
@@ -290,6 +296,8 @@ class Nerodia:
         online or offline in order to keep the subreddit updated.
         """
 
+        await ctx.trigger_typing()
+
         reddit_name = db.get_reddit_name(ctx.message.author.id)
         if reddit_name is None:
             return await ctx.send(embed=NO_CONNECTION_EMBED)
@@ -330,6 +338,8 @@ class Nerodia:
         subreddit's sidebar when the stream
         goes online or offline.
         """
+
+        await ctx.trigger_typing()
 
         reddit_name = db.get_reddit_name(ctx.message.author.id)
         if reddit_name is None:

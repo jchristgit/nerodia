@@ -192,7 +192,7 @@ def get_moderated_subreddits(reddit_name: str) -> Generator[str, None, None]:
             The Redditor whose moderated subreddits should be returned.
 
     Returns:
-        Generator[str]:
+        Generator[str, None, None]:
             A generator of subreddit names, for example `askreddit` or `pics`.
     """
 
@@ -280,3 +280,19 @@ def unfollow(subreddit_name: str, *stream_names: str):
         .filter(db.Subreddit.follows.in_(stream_names)) \
         .delete(synchronize_session='fetch')
     db.session.commit()
+
+
+def get_all_follows() -> List[str]:
+    """
+    Gets a list of all streams that are
+    being followed by various guilds.
+
+    Returns:
+        List[str]:
+            A list of unique streams that are
+            being followed by various subreddits.
+    """
+
+    return [
+        s.follows for s in db.session.query(db.Subreddit.follows).distinct().all()
+    ]

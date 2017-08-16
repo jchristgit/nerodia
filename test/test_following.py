@@ -18,7 +18,9 @@ class DatabaseFollowingTestCase(unittest.TestCase):
         "test-stream-2" as set up in `setUp`.
         """
 
-        self.assertListEqual(db.get_subreddit_follows("test-sub"), ["test-stream", "test-stream-2"])
+        self.assertListEqual(
+            db.get_subreddit_follows("test-sub"), ["test-stream", "test-stream-2"]
+        )
         self.assertEqual(len(session.query(Subreddit).all()), 2)
 
     def test_unknown_sub_no_follows(self):
@@ -28,3 +30,15 @@ class DatabaseFollowingTestCase(unittest.TestCase):
         """
 
         self.assertListEqual(db.get_subreddit_follows("unknown-sub"), [])
+
+    def test_all_follows(self):
+        """
+        Validates that obtaining all follows
+        returns a Generator, resulting in a list
+        of the two followed streams "test-stream"
+        and "test-stream-2"
+        """
+
+        self.assertListEqual(
+            db.get_all_follows(), ["test-stream", "test-stream-2"]
+        )

@@ -1,7 +1,8 @@
 from collections import namedtuple
-from typing import Optional, Union
+from typing import Optional
 
 from .clients import twitch
+from .util import twitch_lock
 
 
 TwitchUser = namedtuple("TwitchUser", "name id")
@@ -23,13 +24,14 @@ def get_user_info(stream_name: str) -> Optional[TwitchUser]:
                               When it does not exist, returns `None`.
     """
 
-    user = twitch.users.translate_usernames_to_ids(stream_name)
+    with twitch_lock:
+        user = twitch.users.translate_usernames_to_ids(stream_name)
     if not user:
         return None
     return TwitchUser(name=user[0].name, id=user[0].id)
 
 
-def is_online(stream: str) -> bool:
+def is_online(stream_name: str) -> bool:
     """
     Checks whether the given stream is online.
     It is highly recommended to validate that
@@ -37,10 +39,12 @@ def is_online(stream: str) -> bool:
     as it will not perform any checks.
 
     Arguments:
-        stream_id (str): The stream name for which to check
+        stream_name (str): The stream name for which to check
 
     Returns:
         bool: Whether the stream under the given ID is online.
     """
 
-    return twitch.streams.get_stream_by_user(get_user_info(stream).id) is not None
+    user = get_user_info(stream_name)
+    with twitch_lock:
+        return twitch.streams.get_stream_by_user(user.id) is not None

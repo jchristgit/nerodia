@@ -35,6 +35,7 @@ from . import database as db
 from . import poller
 from .clients import reddit
 from .handlers import handle_message
+from .util import reddit_lock
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
 # The following events are implemented:
@@ -88,7 +89,7 @@ class RedditConsumer(StoppableThread):
 
             # Program wants to terminate, stop the thread
             if event is None:
-                return
+                break
             elif event[0] == 'on':
                 print('Now online:', event[1])
             elif event[0] == 'off':
@@ -97,6 +98,7 @@ class RedditConsumer(StoppableThread):
                 handle_message(event)
 
             event_queue.task_done()
+        print("[RedditConsumer] Stopped.")
 
 
 class RedditProducer(StoppableThread):
@@ -123,10 +125,12 @@ class RedditProducer(StoppableThread):
 
         print("[RedditProducer] Ready.")
         while not self.should_stop:
-            for msg in reddit.inbox.unread():
-                event_queue.put(('msg', msg))
-                msg.mark_read()
+            with reddit_lock:
+                for msg in reddit.inbox.unread():
+                    event_queue.put(('msg', msg))
+                    msg.mark_read()
             time.sleep(10)
+        print("[RedditProducer] Stopped.")
 
 
 class TwitchProducer(StoppableThread):
@@ -152,7 +156,8 @@ class TwitchProducer(StoppableThread):
         print("[TwitchProducer] Ready.")
         stream_states = {}
         while not self.should_stop:
-            for stream_name in db.get_all_follows():
+            follows = db.get_all_follows()
+            for stream_name in follows:
                 stream_is_online = poller.is_online(stream_name)
                 # Compare the Stream state to the last one known, ignore it if it wasn't found.
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:
@@ -163,3 +168,4 @@ class TwitchProducer(StoppableThread):
                 time.sleep(1)
 
             time.sleep(10)
+        print("[TwitchProducer] Stopped.")

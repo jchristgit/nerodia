@@ -4,7 +4,7 @@ from nerodia import database as db
 from nerodia.models import session, Subreddit
 
 
-class TwoFollowsTestCase(unittest.TestCase):
+class TwoFollowsOneSubredditTestCase(unittest.TestCase):
     """
     A test case for validating that various
     follow-related functions return a list
@@ -73,6 +73,26 @@ class TwoFollowsTestCase(unittest.TestCase):
             db.get_all_follows(), ["test-stream", "test-stream-2"]
         )
 
+    def test_get_subs_following(self):
+        """
+        Validates that the get_subreddits_following
+        function properly returns a list of subreddit
+        names that are following the given stream.
+        """
+
+        self.assertListEqual(
+            db.get_subreddits_following("test-stream"), ["test-sub"]
+        )
+        self.assertListEqual(
+            db.get_subreddits_following("test-stream-2"), ["test-sub"]
+        )
+        self.assertListEqual(
+            db.get_subreddits_following("unknown-stream"), []
+        )
+        self.assertListEqual(
+            db.get_subreddits_following(""), []
+        )
+
 
 class EmptyFollowsTestCase(unittest.TestCase):
     """
@@ -118,4 +138,22 @@ class EmptyFollowsTestCase(unittest.TestCase):
 
         self.assertListEqual(
             db.get_all_follows(), []
+        )
+
+    def test_get_subs_following(self):
+        """
+        Validates that the get_subreddits_following
+        function returns empty lists for any queries
+        ran against it, considering that we did not
+        add any follows to the database in this test case.
+        """
+
+        self.assertListEqual(
+            db.get_subreddits_following("test-stream"), []
+        )
+        self.assertListEqual(
+            db.get_subreddits_following("unknown-stream"), []
+        )
+        self.assertListEqual(
+            db.get_subreddits_following(""), []
         )

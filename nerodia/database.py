@@ -240,6 +240,25 @@ def get_subreddit_follows(sub_name: str) -> List[str]:
     return [s for row_tuple in result for s in row_tuple]
 
 
+def get_subreddits_following(stream_name: str) -> List[str]:
+    """
+    Returns a list of subreddits that are following the
+    given stream.
+
+    Arguments:
+        stream_name (str): The stream which followers should be returned.
+
+    Returns:
+        List[str]: A list of subreddits that are following the stream.
+    """
+
+    with db_lock:
+        result = db.session.query(db.Subreddit.name) \
+            .filter(db.Subreddit.follows == stream_name) \
+            .distinct()
+    return [s.name for s in result]
+
+
 def follow(subreddit_name: str, *stream_names: str):
     """
     Follows the given argument list of streams

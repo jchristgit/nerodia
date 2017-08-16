@@ -351,7 +351,7 @@ class Nerodia:
 
         unique_streams = set(stream_names)
         old_follows = db.get_subreddit_follows(subreddit_name)
-        unfollowed = (s for s in unique_streams if s in old_follows)
+        unfollowed = [s for s in unique_streams if s in old_follows]
         db.unfollow(subreddit_name, *unique_streams)
 
         await ctx.send(embed=discord.Embed(

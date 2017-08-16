@@ -13,6 +13,7 @@ from prawcore.exceptions import NotFound
 
 from . import models as db
 from . import poller
+from .util import db_lock, reddit_lock
 from .workers import reddit
 
 
@@ -36,16 +37,18 @@ def get_stream_id(stream_name: str) -> Optional[int]:
             The stream ID if the stream exists, None otherwise.
     """
 
-    db_stream = db.session.query(db.Stream).\
-        filter(db.Stream.name.ilike(stream_name)).\
-        first()
+    with db_lock:
+        db_stream = db.session.query(db.Stream).\
+            filter(db.Stream.name.ilike(stream_name)).\
+            first()
 
     if db_stream is None:
         user = poller.get_user_info(stream_name)
         if user is None:
             return None
         stream_id = int(user.id)
-        db.session.add(db.Stream(name=user.name, stream_id=stream_id))
+        with db_lock:
+            db.session.add(db.Stream(name=user.name, stream_id=stream_id))
         return stream_id
 
     return db_stream.stream_id
@@ -83,12 +86,14 @@ def subreddit_exists(subreddit_name: str) -> bool:
             Whether the Subreddit exists or not.
     """
 
-    db_sub = db.session.query(db.Subreddit) \
-        .filter(db.Subreddit.name == subreddit_name) \
-        .first()
+    with db_lock:
+        db_sub = db.session.query(db.Subreddit) \
+            .filter(db.Subreddit.name == subreddit_name) \
+            .first()
     if db_sub is None:
         try:
-            reddit.subreddits.search_by_name(subreddit_name, exact=True)
+            with reddit_lock:
+                reddit.subreddits.search_by_name(subreddit_name, exact=True)
         except NotFound:
             return False
     return True
@@ -114,7 +119,8 @@ def get_subreddit_moderators(subreddit_name: str) -> Optional[RedditorList]:
     if not subreddit_exists(subreddit_name):
         return None
     else:
-        return reddit.subreddit(subreddit_name).moderator()
+        with reddit_lock:
+            return reddit.subreddit(subreddit_name).moderator()
 
 
 def add_dr_connection(discord_id: int, reddit_name: str):
@@ -132,8 +138,9 @@ def add_dr_connection(discord_id: int, reddit_name: str):
         any locking mechanism.
     """
 
-    db.session.add(db.DRConnection(discord_id=discord_id, reddit_name=reddit_name))
-    db.session.commit()
+    with db_lock:
+        db.session.add(db.DRConnection(discord_id=discord_id, reddit_name=reddit_name))
+        db.session.commit()
 
 
 def remove_dr_connection(discord_id: int):
@@ -145,10 +152,11 @@ def remove_dr_connection(discord_id: int):
         discord_id (int): the discord ID of the mapping to be removed
     """
 
-    db.session.query(db.DRConnection) \
-        .filter(db.DRConnection.discord_id == discord_id) \
-        .delete()
-    db.session.commit()
+    with db_lock:
+        db.session.query(db.DRConnection) \
+            .filter(db.DRConnection.discord_id == discord_id) \
+            .delete()
+        db.session.commit()
 
 
 def get_reddit_name(discord_id: int) -> Optional[str]:
@@ -171,9 +179,10 @@ def get_reddit_name(discord_id: int) -> Optional[str]:
         value of this function is `None`.
     """
 
-    user = db.session.query(db.DRConnection) \
-        .filter(db.DRConnection.discord_id == discord_id) \
-        .first()
+    with db_lock:
+        user = db.session.query(db.DRConnection) \
+            .filter(db.DRConnection.discord_id == discord_id) \
+            .first()
     if user is not None:
         return user.reddit_name
     return None
@@ -199,9 +208,10 @@ def get_moderated_subreddits(reddit_name: str) -> Generator[str, None, None]:
     # Since SQLAlchemy returns a list of tuples when querying for a single
     # attribute, such as `db.Subreddit.name` in this case, we flatten the
     # list using a generator so we have a list of known subreddits.
-    all_subs = (
-        n for name_tuple in db.session.query(db.Subreddit.name).distinct().all() for n in name_tuple
-    )
+    with db_lock:
+        all_subs = (
+            n.name for n in db.session.query(db.Subreddit.name).distinct().all()
+        )
     return (
         sub_name
         for sub_name in all_subs
@@ -225,7 +235,8 @@ def get_subreddit_follows(sub_name: str) -> List[str]:
 
     # As above, we flatten the result of the query since SQLAlchemy
     # returns the result as a list of tuples with a single element.
-    result = db.session.query(db.Subreddit.follows).filter_by(name=sub_name)
+    with db_lock:
+        result = db.session.query(db.Subreddit.follows).filter_by(name=sub_name)
     return [s for row_tuple in result for s in row_tuple]
 
 
@@ -247,10 +258,11 @@ def follow(subreddit_name: str, *stream_names: str):
             An argument list of stream names that should be followed.
     """
 
-    db.session.add_all(
-        db.Subreddit(name=subreddit_name, follows=stream) for stream in stream_names
-    )
-    db.session.commit()
+    with db_lock:
+        db.session.add_all(
+            db.Subreddit(name=subreddit_name, follows=stream) for stream in stream_names
+        )
+        db.session.commit()
 
 
 def unfollow(subreddit_name: str, *stream_names: str):
@@ -275,11 +287,12 @@ def unfollow(subreddit_name: str, *stream_names: str):
             if they are being followed at the time this function is called.
     """
 
-    q = db.session.query(db.Subreddit) \
-        .filter(db.Subreddit.name == subreddit_name) \
-        .filter(db.Subreddit.follows.in_(stream_names)) \
-        .delete(synchronize_session='fetch')
-    db.session.commit()
+    with db_lock:
+        db.session.query(db.Subreddit) \
+            .filter(db.Subreddit.name == subreddit_name) \
+            .filter(db.Subreddit.follows.in_(stream_names)) \
+            .delete(synchronize_session='fetch')
+        db.session.commit()
 
 
 def get_all_follows() -> List[str]:
@@ -293,6 +306,7 @@ def get_all_follows() -> List[str]:
             being followed by various subreddits.
     """
 
-    return [
-        s.follows for s in db.session.query(db.Subreddit.follows).distinct().all()
-    ]
+    with db_lock:
+        return [
+            s.follows for s in db.session.query(db.Subreddit.follows).distinct().all()
+        ]

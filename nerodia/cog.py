@@ -320,7 +320,8 @@ class Nerodia:
             return await ctx.send(embed=BOT_NOT_MODERATOR_EMBED.add_field(
                 name="Invite me as a Moderator:",
                 value=f"https://reddit.com/r/{subreddit_name}/about/moderators/\n"
-                      f"This is required so that I can update your sidebar."
+                      f"This is required so that I can update your sidebar.\n"
+                      f"My reddit name is **`{BOT_REDDIT_NAME}`**."
             ))
 
         valid_streams = (s for s in stream_names if db.stream_exists(s))

@@ -5,7 +5,7 @@ online or offline.
 
 ### Setup
 While I recommend just using the [running version of Nerodia](https://reddit.com/u/Botyy)
-instead, it is possible to run your own instance. Please only do this if you know 
+instead, it is possible to run your own instance. Please only do this if you know
 what you are doing and have basic programming knowledge. In order to accomplish this, you need
 to perform a few configuration steps. An [example configuration file](./config-example.json)
 is provided. The following section explains how to obtain the various data.
@@ -41,5 +41,14 @@ Integration tests are run using [tox](https://github.com/tox-dev/tox).
 Install it using `pip3 install tox`, and then simply run `tox` from the
 root directory of the project. The environment variable `NERODIA_DB_PATH`
 will be changed to `test/test.db` to ensure that the tests do not mess up
-the actual database used in the bot.
-`NERODIA_DB_PATH` will be set to 
+the actual database used in the bot. You can change this by editing `tox.ini`.
+
+
+### Disclaimer
+Nerodia isn't endorsed by Discord, Reddit or Twitch and does not
+reflect the views or opinions of Discord, Reddit or Twitch.
+
+Nerodia stores the Discord ID of users who connected their Discord account
+with their reddit account through the `connectreddit` in a SQLite database
+which is not directly accessible from external sources. Users consent to this
+through using the command, as it provides a disclaimer informing about this.

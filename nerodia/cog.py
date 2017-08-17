@@ -13,11 +13,16 @@ from discord.ext.commands.cooldowns import BucketType
 
 from . import util
 from . import database as db
+from .clients import reddit
 from .util import (
     remove_token,
     token_dict, token_lock,
+    reddit_lock,
     verify_dict, verify_lock
 )
+
+with reddit_lock:
+    BOT_REDDIT_NAME = reddit.user.me()
 
 
 ALREADY_CONNECTED_EMBED = discord.Embed(
@@ -26,6 +31,11 @@ ALREADY_CONNECTED_EMBED = discord.Embed(
                 "Use the `disconnectreddit` command to disconnect "
                 "your Discord account from your reddit account.",
     colour=discord.Colour.orange()
+)
+BOT_NOT_MODERATOR_EMBED = discord.Embed(
+    title="Cannot perform operation on Subreddit:",
+    description="I need to be Moderator on the Subreddit for this to work.",
+    colour=discord.Colour.red()
 )
 DM_ONLY_EMBED = discord.Embed(
     title="Cannot connect accounts:",
@@ -44,14 +54,14 @@ NO_PM_IN_TIME_EMBED = discord.Embed(
     description="No verification PM was received in time.",
     colour=discord.Colour.red()
 )
-NOT_MODERATOR_EMBED = discord.Embed(
-    title="Failed to change Subreddit settings:",
-    description="You need to be a Moderator on the Subreddit to use this Command.",
-    colour=discord.Colour.red()
-)
 UNKNOWN_SUBREDDIT_EMBED = discord.Embed(
     title="Failed to execute Command:",
     description="The Subreddit you passed to the command does not appear to exist.",
+    colour=discord.Colour.red()
+)
+USER_NOT_MODERATOR_EMBED = discord.Embed(
+    title="Failed to change Subreddit settings:",
+    description="You need to be a Moderator on the Subreddit to use this Command.",
     colour=discord.Colour.red()
 )
 
@@ -299,12 +309,19 @@ class Nerodia:
         await ctx.trigger_typing()
 
         reddit_name = db.get_reddit_name(ctx.message.author.id)
+        sub_moderators = db.get_subreddit_moderators(subreddit_name)
         if reddit_name is None:
             return await ctx.send(embed=NO_CONNECTION_EMBED)
         elif not db.subreddit_exists(subreddit_name):
             return await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
-        elif reddit_name not in db.get_subreddit_moderators(subreddit_name):
-            return await ctx.send(embed=NOT_MODERATOR_EMBED)
+        elif reddit_name not in sub_moderators:
+            return await ctx.send(embed=USER_NOT_MODERATOR_EMBED)
+        elif BOT_REDDIT_NAME not in sub_moderators:
+            return await ctx.send(embed=BOT_NOT_MODERATOR_EMBED.add_field(
+                name="Invite me as a Moderator:",
+                value=f"https://reddit.com/r/{subreddit_name}/about/moderators/\n"
+                      f"This is required so that I can update your sidebar."
+            ))
 
         valid_streams = (s for s in stream_names if db.stream_exists(s))
         present_follows = db.get_subreddit_follows(subreddit_name)
@@ -347,7 +364,7 @@ class Nerodia:
         elif not db.subreddit_exists(subreddit_name):
             return await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
         elif reddit_name not in db.get_subreddit_moderators(subreddit_name):
-            return await ctx.send(embed=NOT_MODERATOR_EMBED)
+            return await ctx.send(embed=USER_NOT_MODERATOR_EMBED)
 
         unique_streams = set(stream_names)
         old_follows = db.get_subreddit_follows(subreddit_name)

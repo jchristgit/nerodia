@@ -1,3 +1,17 @@
+"""
+Contains various functions related
+to the Twitch API. It is recommended
+to use the various related functions
+of the database module instead of
+these, since these always execute
+an API call while the database module
+tries to obtain data from the SQLite
+database before making any queries.
+
+The functions in this module are
+threadsafe using locks.
+"""
+
 from collections import namedtuple
 from typing import Optional
 

@@ -3,6 +3,9 @@ Abstracts receiving data from
 the SQLite database, and polling
 for data from Reddit or Twitch
 when the data is not stored yet.
+
+All database operations are
+threadsafe using a lock.
 """
 
 import functools

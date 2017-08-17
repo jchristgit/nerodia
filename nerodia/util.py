@@ -16,6 +16,12 @@ db_lock = threading.Lock()
 # Used for any invocation of PRAW functions.
 reddit_lock = threading.Lock()
 
+# Stores information about the stream status (online / offline) of all streams known.
+stream_states = dict()
+
+# Used for access and mofication to the above dictionary.
+stream_lock = threading.Lock()
+
 # A Discord ID -> verification token mapping.
 token_dict = dict()
 

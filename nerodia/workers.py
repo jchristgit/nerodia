@@ -35,12 +35,11 @@ from . import database as db
 from . import poller
 from .clients import reddit
 from .handlers import handle_message
-from .util import reddit_lock
+from .util import reddit_lock, stream_lock, stream_states
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
 # The following events are implemented:
-# ('on', <stream_name>) - sent whenever a Twitch Stream goes on.
-# ('off', <stream_name>) - sent whenever a Twitch Stream goes offline.
+# ('up', <stream_name>) - stream status update. check stream_states for details.
 # ('msg', <message_instance>) - sent when a message is received from an authorized user.
 event_queue = Queue()
 
@@ -90,10 +89,8 @@ class RedditConsumer(StoppableThread):
             # Program wants to terminate, stop the thread
             if event is None:
                 break
-            elif event[0] == 'on':
-                print('Now online:', event[1])
-            elif event[0] == 'off':
-                print('Now offline:', event[1])
+            elif event[0] == 'up':
+                print('Stream Status updated:', event[1])
             else:
                 handle_message(event)
 
@@ -154,17 +151,17 @@ class TwitchProducer(StoppableThread):
         """
 
         print("[TwitchProducer] Ready.")
-        stream_states = {}
         while not self.should_stop:
             follows = db.get_all_follows()
             for stream_name in follows:
                 stream_is_online = poller.is_online(stream_name)
                 # Compare the Stream state to the last one known, ignore it if it wasn't found.
-                if stream_states.get(stream_name, stream_is_online) != stream_is_online:
-                    event_queue.put(
-                        ('on' if stream_is_online else 'off', stream_name)
-                    )
-                stream_states[stream_name] = stream_is_online
+                with stream_lock:
+                    if stream_states.get(stream_name, stream_is_online) != stream_is_online:
+                        event_queue.put(
+                            ('up', stream_name)
+                        )
+                    stream_states[stream_name] = stream_is_online
                 time.sleep(1)
 
             time.sleep(10)

@@ -123,24 +123,12 @@ def find_stream_start_idx(sidebar: str) -> Optional[int]:
     return index + len("# Streams") - 1
 
 
-def remove_old_stream_list(sidebar: str, start_idx: int) -> str:
+def remove_old_stream_list(sidebar: str) -> str:
     """
     Removes the old stream list of a Subreddit,
-    given that it is in the following format:
-        # Streams
-        > my-stream
-        > another-stream
-        > more-streams-here
-    This will remove every line after the
-        # Streams
-    header that starts with `>`, given that the
-    previous line also started with `>` to make
-    sure that no other content is removed from
-    the sidebar.
 
     Arguments:
         sidebar (str): The current sidebar of the Subreddit.
-        start_idx (int): The index at which the `# Streams` header stopped.
 
     Returns:
         str: The sidebar without the old streams.

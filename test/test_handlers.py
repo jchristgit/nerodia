@@ -99,7 +99,7 @@ class SidebarWithoutStreamsOnListTestCase(unittest.TestCase):
         """
 
         self.assertEqual(
-            handlers.remove_old_stream_list(self.sidebar, self.start_idx), self.sidebar
+            handlers.remove_old_stream_list(self.sidebar), self.sidebar
         )
 
 
@@ -172,5 +172,5 @@ class SidebarWithThreeStreamsOnListTestCase(unittest.TestCase):
         """
 
         self.assertEqual(
-            handlers.remove_old_stream_list(self.sidebar, self.start_idx), self.clean_sidebar
+            handlers.remove_old_stream_list(self.sidebar), self.clean_sidebar
         )

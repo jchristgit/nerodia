@@ -34,7 +34,7 @@ from queue import Queue
 from . import database as db
 from . import poller
 from .clients import reddit
-from .handlers import handle_message
+from .handlers import handle_message, handle_stream_update
 from .util import reddit_lock, stream_lock, stream_states
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
@@ -91,6 +91,7 @@ class RedditConsumer(StoppableThread):
                 break
             elif event[0] == 'up':
                 print('Stream Status updated:', event[1])
+                handle_stream_update(event[1])
             else:
                 handle_message(event)
 

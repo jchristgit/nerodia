@@ -3,18 +3,16 @@ Provides handlers for the various events
 that are produced by the RedditProducer.
 """
 
-from typing import Tuple
+from typing import Optional, Tuple
 
 import praw
 
-from .util import token_dict, token_lock, verify_dict, verify_lock
+from . import database as db
+from .clients import reddit
+from .util import reddit_lock, token_dict, token_lock, verify_dict, verify_lock
 
 
-def _get_stream_name(full_msg: praw.models.Message) -> str:
-    return ' '.join(full_msg.body.split()[1:])
-
-
-def handle_verify(msg: praw.models.Message):
+def verify(msg: praw.models.Message):
     """
     Handles a message with the subject `verify`,
     which was usually sent by a Discord user in
@@ -33,9 +31,11 @@ def handle_verify(msg: praw.models.Message):
     if discord_id is not None:
         with verify_lock:
             verify_dict[discord_id] = msg.author.name
-        msg.reply("You have connected your accounts successfully!")
+        with reddit_lock:
+            msg.reply("You have connected your accounts successfully!")
     else:
-        msg.reply(f"> {msg.body}\n\nFailed to connect accounts: Unknown token.")
+        with reddit_lock:
+            msg.reply(f"> {msg.body}\n\nFailed to connect accounts: Unknown token.")
 
 
 def handle_message(event: Tuple[str, praw.models.Message]) -> None:
@@ -44,8 +44,117 @@ def handle_message(event: Tuple[str, praw.models.Message]) -> None:
     """
 
     _, msg = event
-    print('New Message from', msg.author.name, 'contents:', msg.body)
+    print('New Message from', (msg.author or msg.subreddit).name, 'contents:', msg.body)
 
     if msg.subject == "verification":
-        print("wants to verify.")
-        handle_verify(msg)
+        verify(msg)
+    elif msg.body.startswith("**gadzooks!"):
+        with reddit_lock:
+            msg.subreddit.mod.accept_invite()
+        print(f"Accepted a Moderator invitation to {msg.subreddit}.")
+
+
+def handle_stream_update(stream_name: str):
+    """
+    Handles a Stream update.
+    Dispatches a sidebar update
+    event for every Subreddit
+    that is following the stream
+    at the time the update occurs.
+
+    Arguments:
+        stream_name (str):
+            The stream which status changed from offline to online or the other way around.
+    """
+
+    following_subreddits = db.get_subreddits_following(stream_name)
+    print("stream status update on", stream_name)
+    print("Following:", following_subreddits)
+
+    for sub in following_subreddits:
+        notify_update(sub, stream_name)
+
+
+def notify_update(sub: str, stream: str):
+    """
+    Notifies the given Subreddit about an
+    update on the given Stream. Usually,
+    this will just remove the old stream
+    list from its sidebar, re-build it,
+    and put it where it was before.
+
+    Arguments:
+        sub (str):
+            The Subreddit on which the update should be performed.
+        stream (str):
+            The stream which state has changed.
+    """
+
+    with reddit_lock:
+        current_sidebar = reddit.subreddit(sub).mod.settings()["description"]
+    stream_start_idx = find_stream_start_idx(current_sidebar)
+    remove_old_stream_list(current_sidebar, stream_start_idx)
+
+
+def find_stream_start_idx(sidebar: str) -> Optional[int]:
+    """
+    Attempts to find the character `s` of the
+        "# Streams"
+    header and returns the index of it.
+    In the future, this could be improved by
+    allowing subreddits to set a "stream-list-marker"
+    for each subreddit and thus being able
+    to further customize where the stream
+    ilst gets written by the bot.
+
+    Arguments:
+        sidebar (str):
+            The subreddit sidebar to search.
+
+    Returns:
+        Optional[int]:
+            The index of character "s" of the `# Streams`
+            header, or `None` if it could not be found.
+    """
+
+    index = sidebar.find("# Streams")
+    if index == -1:
+        return None
+    return index + len("# Streams") - 1
+
+
+def remove_old_stream_list(sidebar: str, start_idx: int) -> str:
+    """
+    Removes the old stream list of a Subreddit,
+    given that it is in the following format:
+        # Streams
+        > my-stream
+        > another-stream
+        > more-streams-here
+    This will remove every line after the
+        # Streams
+    header that starts with `>`, given that the
+    previous line also started with `>` to make
+    sure that no other content is removed from
+    the sidebar.
+
+    Arguments:
+        sidebar (str): The current sidebar of the Subreddit.
+        start_idx (int): The index at which the `# Streams` header stopped.
+
+    Returns:
+        str: The sidebar without the old streams.
+    """
+
+    as_list = sidebar.splitlines()
+
+    # Copy the list so we can modify it without issues
+    updated = list(as_list)
+    previous_line = ""
+    for line in as_list:
+        if previous_line == "# Streams" or previous_line.startswith(">"):
+            if line.startswith(">"):
+                updated.remove(line)
+        previous_line = line
+
+    return '\n'.join(updated)

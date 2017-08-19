@@ -3,7 +3,7 @@ Provides handlers for the various events
 that are produced by the RedditProducer.
 """
 
-from typing import Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
 import praw
 
@@ -145,3 +145,49 @@ def remove_old_stream_list(sidebar: str) -> str:
         previous_line = line
 
     return '\n'.join(updated)
+
+
+def add_stream_list(sidebar: str, start_idx: int, streams: Iterable[str]) -> str:
+    """
+    Adds the stream list to the Subreddit.
+    Make sure to remove the old streams list
+    beforehand using `remove_old_stream_list`
+    to ensure that no duplicate entries will
+    be on the list.
+
+    Streams are added into the following format:
+        # Streams
+        > stream_name
+        > another_stream
+        > more_streams
+    The lines containing stream names end with
+    two spaces to ensure that the formatting
+    will not put them together onto a single line.
+
+    Arguments:
+        sidebar (str):
+            The sidebar to which the streams list should be added.
+            The original argument is not modified.
+        start_idx (int):
+            The index of the last character of the header, which
+            is usually `s` (from `# Streams`).
+            Can be obtained by using `find_stream_start_idx`.
+        streams (Iterable[str]):
+            An iterable of strings containing the names of the
+            streams which should be put onto the subreddit's
+            sidebar below the streams header.
+            Can be a list, but it is recommended to use a
+            generator (expression) for efficiency.
+
+    Returns:
+        str:
+            The updated sidebar, containing a list of streams
+            in quotes (prefixed with `> ` and with two spaces
+            appended). Aside from adding the list of streams,
+            this does not differ from the original sidebar.
+    """
+
+    # See format description above.
+    streams_as_string = "\n> " + "  \n> ".join(streams) + "  \n"
+
+    return sidebar[:start_idx + 1] + streams_as_string + sidebar[start_idx + 1:]

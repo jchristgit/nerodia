@@ -123,6 +123,10 @@ class SidebarWithThreeStreamsOnListTestCase(unittest.TestCase):
 
             `start_idx`, which is the index
             of the last character of the header.
+
+            `streams`, a list of three streams
+            which is used to test the
+            `add_stream_list` function.
         """
 
         self.sidebar = (
@@ -145,6 +149,18 @@ class SidebarWithThreeStreamsOnListTestCase(unittest.TestCase):
         )
 
         self.start_idx = self.sidebar.find(HEADER) + len(HEADER) - 1
+        self.streams = ["test-stream", "another-stream", "third-stream"]
+
+        self.sidebar_with_streams = (
+            "My subreddit sidebar\n"
+            f"{HEADER}\n"
+            "> test-stream  \n"
+            "> another-stream  \n"
+            "> third-stream  \n"
+            ""
+            "\nmy other content\n"
+            "> ignore-me-botto"
+        )
 
     def tearDown(self):
         pass
@@ -173,4 +189,16 @@ class SidebarWithThreeStreamsOnListTestCase(unittest.TestCase):
 
         self.assertEqual(
             handlers.remove_old_stream_list(self.sidebar), self.clean_sidebar
+        )
+
+    def test_add_stream_list(self):
+        """
+        Validates that a stream list
+        is properly added in the correct
+        format when using `add_stream_list`.
+        """
+
+        self.assertEqual(
+            handlers.add_stream_list(self.clean_sidebar, self.start_idx, self.streams),
+            self.sidebar_with_streams
         )

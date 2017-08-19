@@ -147,10 +147,9 @@ def remove_old_stream_list(sidebar: str, start_idx: int) -> str:
     """
 
     as_list = sidebar.splitlines()
-
-    # Copy the list so we can modify it without issues
-    updated = list(as_list)
+    updated = as_list.copy()
     previous_line = ""
+
     for line in as_list:
         if previous_line == "# Streams" or previous_line.startswith(">"):
             if line.startswith(">"):

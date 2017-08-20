@@ -272,7 +272,7 @@ class Nerodia:
             else:
                 await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
         else:
-            modded_sub_list = '\n'.join(db.get_moderated_subreddits(reddit_name))
+            modded_sub_list = '\n• '.join(db.get_moderated_subreddits(reddit_name))
             if modded_sub_list:
                 moderated_subs = "• " + modded_sub_list
             else:

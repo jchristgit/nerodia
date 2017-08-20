@@ -103,27 +103,25 @@ def subreddit_exists(subreddit_name: str) -> bool:
 
 
 @functools.lru_cache()
-def get_subreddit_moderators(subreddit_name: str) -> Optional[RedditorList]:
+def get_subreddit_moderators(subreddit_name: str) -> RedditorList:
     """
     Returns a list of Moderators for the given Subreddit.
     If the Subreddit was not found, returns None.
     Results from up to 128 recent calls are cached.
+    It is recommended to first validate that the
+    Subreddit exists, which is usually preferable anyways.
 
     Arguments:
         subreddit_name (str):
             The Subreddit for which Moderators should be returned.
 
     Returns:
-        Optional[RedditorList]:
+        RedditorList:
             A list of `Redditor`s that moderate the subreddit.
-            `None` if the subreddit was not found
     """
 
-    if not subreddit_exists(subreddit_name):
-        return None
-    else:
-        with reddit_lock:
-            return reddit.subreddit(subreddit_name).moderator()
+    with reddit_lock:
+        return reddit.subreddit(subreddit_name).moderator()
 
 
 def add_dr_connection(discord_id: int, reddit_name: str):

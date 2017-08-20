@@ -14,37 +14,26 @@ other threads to make them
 exit their while polling loop.
 """
 
-import time
-
 from . import workers
 from .bot import NerodiaDiscordBot
 from .clients import discord_token
 
-SECONDS_IN_A_YEAR = 60 * 60 * 24 * 365
-
 if __name__ == '__main__':
-    THREADS = [
+    THREADS = (
         workers.RedditConsumer(),
         workers.RedditProducer(),
         workers.TwitchProducer()
-    ]
+    )
 
     for t in THREADS:
         t.start()
 
-    discord_bot = NerodiaDiscordBot(discord_token)
-    discord_bot.run()
-    print("Stopped the Discord Bot. Hit ^C again to stop the Workers.")
+    NerodiaDiscordBot(discord_token).run()
+    print("Stopped the Discord Bot. Stopping the Workers...")
 
-    try:
-        time.sleep(SECONDS_IN_A_YEAR)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        print("Stopping Workers...")
-        workers.event_queue.put(None)
+    workers.event_queue.put(None)
 
-        for t in THREADS:
-            t.stop()
-        for t in THREADS:
-            t.join()
+    for t in THREADS:
+        t.stop()
+    for t in THREADS:
+        t.join()

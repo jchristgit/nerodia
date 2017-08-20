@@ -21,10 +21,10 @@ class EmptySidebarTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        pass
+        """Since we are testing with an empty sidebar, nothing needs to be done here."""
 
     def tearDown(self):
-        pass
+        """Nothing to clean up was created in `setUp`, thus this method does nothing."""
 
     def test_find_start_idx(self):
         """
@@ -70,7 +70,7 @@ class SidebarWithoutStreamsOnListTestCase(unittest.TestCase):
         self.start_idx = self.sidebar.find(HEADER) + len(HEADER) - 1
 
     def tearDown(self):
-        pass
+        """There is no need to clean up any instance attributes here."""
 
     def test_find_start_idx(self):
         """
@@ -163,7 +163,7 @@ class SidebarWithThreeStreamsOnListTestCase(unittest.TestCase):
         )
 
     def tearDown(self):
-        pass
+        """Again, we are not required to clean up any instance attributes in this test."""
 
     def test_find_start_idx(self):
         """

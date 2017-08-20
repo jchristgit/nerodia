@@ -1,10 +1,19 @@
+"""
+Contains a single test case
+for the subreddit database,
+which validates the proper
+function of various
+subreddit-table related functions.
+
+These tests use the reddit API.
+"""
 
 import unittest
 
 from praw.models import RedditorList, Redditor
 
-from nerodia import database as db  # noqa
-from nerodia.models import session, Subreddit  # noqa
+from nerodia import database as db
+from nerodia.models import session, Subreddit
 
 
 class SubredditDatabaseTestCase(unittest.TestCase):

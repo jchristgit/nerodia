@@ -9,7 +9,7 @@ import praw
 
 from . import database as db
 from .clients import reddit
-from .util import reddit_lock, token_dict, token_lock, verify_dict, verify_lock
+from .util import stream_lock, stream_states, reddit_lock, token_dict, token_lock, verify_dict, verify_lock
 
 
 def verify(msg: praw.models.Message):
@@ -75,25 +75,39 @@ def handle_stream_update(stream_name: str):
         notify_update(sub, stream_name)
 
 
-def notify_update(sub: str, stream: str):
+def notify_update(sub: str):
     """
     Notifies the given Subreddit about an
-    update on the given Stream. Usually,
-    this will just remove the old stream
+    update on any Stream.
+    This will remove the old stream
     list from its sidebar, re-build it,
     and put it where it was before.
 
     Arguments:
         sub (str):
             The Subreddit on which the update should be performed.
-        stream (str):
-            The stream which state has changed.
     """
 
     with reddit_lock:
-        current_sidebar = reddit.subreddit(sub).mod.settings()["description"]
+        mod_relationship = reddit.subreddit(sub).mod
+        current_sidebar = mod_relationship.settings()["description"]
+    print(current_sidebar)
     stream_start_idx = find_stream_start_idx(current_sidebar)
-    remove_old_stream_list(current_sidebar, stream_start_idx)
+    print(stream_start_idx)
+    if stream_start_idx is None:
+        print(sub, "is following streams, but no header was found.")
+        return
+    clean_sidebar = remove_old_stream_list(current_sidebar)
+    print(clean_sidebar)
+    with stream_lock:
+        sidebar_with_streams = add_stream_list(
+            clean_sidebar,
+            stream_start_idx,
+            (stream for stream in db.get_subreddit_follows(sub) if stream_states[stream])
+        )
+        print(sidebar_with_streams)
+        with reddit_lock:
+            mod_relationship.update(description=sidebar_with_streams)
 
 
 def find_stream_start_idx(sidebar: str) -> Optional[int]:

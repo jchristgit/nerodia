@@ -60,6 +60,16 @@ class StoppableThread(threading.Thread):
         self.should_stop = False
 
     def stop(self):
+        """
+        Sets the instance attribute
+        `should_stop` to `True`. Since
+        subclasses of `StoppableThread`
+        should continually check this
+        attribute, this will stop the
+        thread on which the function was
+        invoked soon.
+        """
+
         self.should_stop = True
 
 

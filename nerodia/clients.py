@@ -17,7 +17,7 @@ import praw
 from twitch import TwitchClient
 
 
-with open("config.json", 'r') as f:
+with open("config.json") as f:
     as_json = json.load(f)
     DISCORD_AUTH = as_json["discord_auth"]
     REDDIT_AUTH = as_json["reddit_auth"]

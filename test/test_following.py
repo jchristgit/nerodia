@@ -1,3 +1,19 @@
+"""
+Contains various tests related to
+subreddits following various streams.
+
+The test cases set up different relationships
+between the subreddits and the follows,
+for example without any follow, or with
+one subreddit and multiple follows.
+
+The proper function of these modules
+is vital to the bot working properly,
+as a malfunction might lead to messed
+up sidebars or not followed streams
+being put onto an unrelated sidebar.
+"""
+
 import unittest
 
 from nerodia import database as db

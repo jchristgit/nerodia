@@ -14,10 +14,10 @@ from nerodia import database as db
 
 class StreamDatabaseTestCase(unittest.TestCase):
     def setUp(self):
-        pass
+        """This test does not require any setup."""
 
     def tearDown(self):
-        pass
+        """Nothing was created in `setUp`, thus this function does nothing."""
 
     def test_stream_id(self):
         """

@@ -72,7 +72,7 @@ def handle_stream_update(stream_name: str):
     print("Following:", following_subreddits)
 
     for sub in following_subreddits:
-        notify_update(sub, stream_name)
+        notify_update(sub)
 
 
 def notify_update(sub: str):

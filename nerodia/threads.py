@@ -45,32 +45,3 @@ def shutdown_all():
 
     for t in THREADS:
         t.join()
-
-
-def restart_all():
-    """
-    Restarts all threads, regardless
-    of whether they were running or
-    shut down through other functions.
-    """
-
-    shutdown_all()
-    start_all()
-
-
-def restart_stopped():
-    """
-    Restarts all threads which were
-    stopped due to an error or manual
-    invocation. Additionally, this
-    sets the instance attribute
-    `should_stop` to `True` to ensure
-    that the thread returns to its
-    original state even when it was
-    stopped manually previously.
-    """
-
-    for t in THREADS:
-        if not t.is_alive():
-            t.should_stop = False
-            t.start()

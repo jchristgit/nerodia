@@ -11,16 +11,16 @@ from typing import Optional
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
-from . import util
-from . import database as db
-from .clients import reddit
-from .util import (
+from .. import util
+from .. import database as db
+from ..clients import reddit
+from ..util import (
     remove_token,
     token_dict, token_lock,
     reddit_lock,
     verify_dict, verify_lock
 )
-from .threads import THREADS
+from ..threads import THREADS
 
 with reddit_lock:
     BOT_REDDIT_NAME = reddit.user.me()

@@ -4,12 +4,16 @@ this package so that relative
 imports work properly.
 """
 
+from . import cogs
 from . import (
-    bot, clients, cog, database, handlers,
+    bot, clients, database, handlers,
     models, poller, util, workers
 )
+
 __all__ = [
-    "bot", "clients", "cog", "database", "handlers",
+    "cogs",
+
+    "bot", "clients", "database", "handlers",
     "models", "poller", "util", "workers"
 ]
 

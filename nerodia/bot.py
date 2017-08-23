@@ -7,6 +7,8 @@ bot for easier configuration.
 
 from discord.ext import commands
 
+from . import cogs
+
 
 DESCRIPTION = (
     "Hello! I am a bot made by Volcyy#2359 to be used as a frontend to the Reddit Bot "
@@ -36,8 +38,9 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
             description=DESCRIPTION,
             pm_help=True
         )
-        self.load_extension("nerodia.cog")
         self._token = token
+
+        cogs.setup(self)
 
     async def on_ready(self):
         """

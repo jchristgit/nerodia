@@ -20,7 +20,7 @@ from .util import (
     reddit_lock,
     verify_dict, verify_lock
 )
-from .workers import THREADS
+from .threads import THREADS
 
 with reddit_lock:
     BOT_REDDIT_NAME = reddit.user.me()

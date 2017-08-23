@@ -182,9 +182,3 @@ class TwitchProducer(StoppableThread):
             time.sleep(10)
         print("[TwitchProducer] Stopped.")
 
-THREADS = (
-    RedditConsumer(),
-    RedditProducer(),
-    TwitchProducer()
-)
-

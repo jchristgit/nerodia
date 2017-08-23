@@ -5,7 +5,7 @@ packages, for example for adding
 the cogs to the Discord Bot.
 """
 
-from . import cog
+from . import cog, constants
 
 
 def setup(bot):

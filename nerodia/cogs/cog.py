@@ -5,71 +5,31 @@ for the Discord Bot.
 
 import asyncio
 import datetime
-import discord
 from typing import Optional
 
+import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
-from .. import util
+from .constants import (
+    # Error Embeds
+    ALREADY_CONNECTED_EMBED, BOT_NOT_MODERATOR_EMBED, DM_ONLY_EMBED, NO_CONNECTION_EMBED,
+    NO_PM_IN_TIME_EMBED, UNKNOWN_SUBREDDIT_EMBED, USER_NOT_MODERATOR_EMBED,
+
+    # Verification timer settings
+    VERIFY_TIMEOUT,
+
+    # Reddit constants
+    BOT_REDDIT_NAME, PM_URL
+)
 from .. import database as db
-from ..clients import reddit
+from .. import util
+from ..threads import THREADS
 from ..util import (
     remove_token,
     token_dict, token_lock,
-    reddit_lock,
     verify_dict, verify_lock
 )
-from ..threads import THREADS
-
-with reddit_lock:
-    BOT_REDDIT_NAME = reddit.user.me()
-
-
-ALREADY_CONNECTED_EMBED = discord.Embed(
-    title="Cannot connect accounts:",
-    description="You already have a reddit account connected. "
-                "Use the `disconnectreddit` command to disconnect "
-                "your Discord account from your reddit account.",
-    colour=discord.Colour.orange()
-)
-BOT_NOT_MODERATOR_EMBED = discord.Embed(
-    title="Cannot perform operation on Subreddit:",
-    description="I need to be Moderator on the Subreddit for this to work.",
-    colour=discord.Colour.red()
-)
-DM_ONLY_EMBED = discord.Embed(
-    title="Cannot connect accounts:",
-    description="For safety reasons, this command can "
-                "only be used in private messages.",
-    colour=discord.Colour.red()
-)
-NO_CONNECTION_EMBED = discord.Embed(
-    title="Failed to run command:",
-    description="This command requires you to have a reddit account "
-                "connected through the `connectreddit` command.",
-    colour=discord.Colour.red()
-)
-NO_PM_IN_TIME_EMBED = discord.Embed(
-    title="Failed to verify:",
-    description="No verification PM was received in time.",
-    colour=discord.Colour.red()
-)
-UNKNOWN_SUBREDDIT_EMBED = discord.Embed(
-    title="Failed to execute Command:",
-    description="The Subreddit you passed to the command does not appear to exist.",
-    colour=discord.Colour.red()
-)
-USER_NOT_MODERATOR_EMBED = discord.Embed(
-    title="Failed to change Subreddit settings:",
-    description="You need to be a Moderator on the Subreddit to use this Command.",
-    colour=discord.Colour.red()
-)
-
-PM_URL = "https://www.reddit.com/message/compose?to=Botyy&subject=verification&message="
-
-# The timeout for the reddit verification, in minutes
-VERIFY_TIMEOUT = 5
 
 
 def create_instructions(token: str) -> discord.Embed:
@@ -110,7 +70,7 @@ def create_instructions(token: str) -> discord.Embed:
     )
 
 
-async def wait_for_add(user_id: str, timeout: int = VERIFY_TIMEOUT) -> Optional[str]:
+async def wait_for_add(user_id: str) -> Optional[str]:
     """
     Waits for the given user to add his reddit
     account. It is highly recommended to set
@@ -140,7 +100,7 @@ async def wait_for_add(user_id: str, timeout: int = VERIFY_TIMEOUT) -> Optional[
             the token was received in time.
     """
 
-    timeout_ctr = timeout * 60
+    timeout_ctr = VERIFY_TIMEOUT * 60
     while timeout_ctr > 0:
         await asyncio.sleep(5)
         timeout_ctr -= 5
@@ -185,10 +145,10 @@ class Nerodia:
 
         await ctx.trigger_typing()
 
-        if not isinstance(ctx.message.channel, discord.abc.PrivateChannel):
-            return await ctx.send(embed=DM_ONLY_EMBED)
-        elif db.get_reddit_name(ctx.message.author.id) is not None:
+        if db.get_reddit_name(ctx.message.author.id) is not None:
             return await ctx.send(embed=ALREADY_CONNECTED_EMBED)
+        elif not isinstance(ctx.message.channel, discord.abc.PrivateChannel):
+            return await ctx.send(embed=DM_ONLY_EMBED)
 
         token = util.random_string()
         await ctx.send(embed=create_instructions(token))

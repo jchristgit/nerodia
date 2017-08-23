@@ -20,6 +20,7 @@ from .util import (
     reddit_lock,
     verify_dict, verify_lock
 )
+from .workers import THREADS
 
 with reddit_lock:
     BOT_REDDIT_NAME = reddit.user.me()
@@ -209,8 +210,8 @@ class Nerodia:
                 colour=discord.Colour.green()
             ))
 
-    @commands.command()
-    async def disconnectreddit(self, ctx):
+    @commands.command(name="disconnectreddit")
+    async def disconnect_reddit(self, ctx):
         """
         Disconnects your reddit account from
         your Discord account, if connected.
@@ -233,7 +234,28 @@ class Nerodia:
                 colour=discord.Colour.green()
             ))
 
-    @commands.group(aliases=["db"])
+    @commands.command(name="adashboard", aliases=["adb"])
+    @commands.is_owner()
+    async def admin_dashboard(self, ctx):
+        """
+        Displays a dashboard for the bot
+        administrator with an overview about
+        the threads, as well as other
+        useful information.
+        """
+        await ctx.trigger_typing()
+
+        await ctx.send(embed=discord.Embed(
+            title="Nerodia: Admin Dashboard",
+            colour=discord.Colour.blue()
+        ).add_field(
+            name="Thread Status",
+            value='\n'.join(
+                ("🍏  **Online**: " if t.is_alive() else "🔴 **Offline**: ") + t.name for t in THREADS
+            )
+        ))
+
+    @commands.command(aliases=["db"])
     async def dashboard(self, ctx, subreddit_name: str=None):
         """
         Displays a dashboard for all information

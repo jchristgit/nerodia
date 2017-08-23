@@ -25,6 +25,10 @@ simple variable to a
 `threading.Thread` which it uses
 in its main loop to check whether
 it should stop or keep running.
+Additionally, this class sets
+the name of any thread class that
+inherits from it to the name of
+the class.
 """
 
 import threading
@@ -55,8 +59,8 @@ class StoppableThread(threading.Thread):
     for example in a while loop.
     """
 
-    def __init__(self):
-        super().__init__(daemon=True)
+    def __init__(self, *args, **kwargs):
+        super().__init__(daemon=True, name=kwargs.get('name', type(self).__name__))
         self.should_stop = False
 
     def stop(self):
@@ -177,3 +181,10 @@ class TwitchProducer(StoppableThread):
 
             time.sleep(10)
         print("[TwitchProducer] Stopped.")
+
+THREADS = (
+    RedditConsumer(),
+    RedditProducer(),
+    TwitchProducer()
+)
+

@@ -17,14 +17,10 @@ exit their while polling loop.
 from . import workers
 from .bot import NerodiaDiscordBot
 from .clients import discord_token
+from .workers import THREADS
+
 
 if __name__ == '__main__':
-    THREADS = (
-        workers.RedditConsumer(),
-        workers.RedditProducer(),
-        workers.TwitchProducer()
-    )
-
     for t in THREADS:
         t.start()
 

@@ -141,6 +141,7 @@ class RedditProducer(StoppableThread):
                 for msg in reddit.inbox.unread():
                     event_queue.put(('msg', msg))
                     msg.mark_read()
+                    time.sleep(0.01)
             time.sleep(10)
         print("[RedditProducer] Stopped.")
 
@@ -169,6 +170,7 @@ class TwitchProducer(StoppableThread):
         while not self.should_stop:
             follows = db.get_all_follows()
             for stream_name in follows:
+                time.sleep(1)
                 stream_is_online = poller.is_online(stream_name)
                 # Compare the Stream state to the last one known, ignore it if it wasn't found.
                 with stream_lock:
@@ -177,7 +179,6 @@ class TwitchProducer(StoppableThread):
                             ('up', stream_name)
                         )
                     stream_states[stream_name] = stream_is_online
-                time.sleep(1)
 
             time.sleep(10)
         print("[TwitchProducer] Stopped.")

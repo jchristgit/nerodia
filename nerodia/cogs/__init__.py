@@ -5,7 +5,7 @@ packages, for example for adding
 the cogs to the Discord Bot.
 """
 
-from . import cog, constants
+from . import admin, cog, constants
 
 
 def setup(bot):
@@ -19,3 +19,4 @@ def setup(bot):
     """
 
     bot.add_cog(cog.Nerodia(bot))
+    bot.add_cog(admin.Administration(bot))

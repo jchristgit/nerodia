@@ -24,7 +24,6 @@ from .constants import (
 )
 from .. import database as db
 from .. import util
-from ..threads import THREADS
 from ..util import (
     remove_token,
     token_dict, token_lock,
@@ -40,10 +39,13 @@ def create_instructions(token: str) -> discord.Embed:
     which the user should send to the bot via a direct message.
 
     Arguments:
-        token (str): The token that should be appended to the reddit PM link.
+        token (str):
+            The token that should be appended to the reddit PM link.
 
     Returns:
-        discord.Embed: An embed with a disclaimer about user data.
+        discord.Embed:
+            An embed with a disclaimer about user data, as well as other information
+            necessary to link the author's Discord account with their reddit account.
     """
 
     return discord.Embed(
@@ -128,8 +130,7 @@ class Nerodia:
     @commands.command(name="connectreddit")
     @commands.cooldown(rate=2, per=5. * 60, type=BucketType.user)
     async def connect_reddit(self, ctx):
-        """
-        Connects your Discord account to your reddit account.
+        """Connects your Discord account to your reddit account.
         Please make sure to carefully read through the
         disclaimer and  the instructions that this
         command sends upon invocation.
@@ -173,8 +174,7 @@ class Nerodia:
     @commands.command(name="disconnectreddit")
     async def disconnect_reddit(self, ctx):
         """
-        Disconnects your reddit account from
-        your Discord account, if connected.
+        Disconnects your reddit account from your Discord account.
         """
 
         await ctx.trigger_typing()
@@ -194,33 +194,9 @@ class Nerodia:
                 colour=discord.Colour.green()
             ))
 
-    @commands.command(name="adashboard", aliases=["adb"])
-    @commands.is_owner()
-    async def admin_dashboard(self, ctx):
-        """
-        Displays a dashboard for the bot
-        administrator with an overview about
-        the threads, as well as other
-        useful information.
-        """
-        await ctx.trigger_typing()
-
-        await ctx.send(embed=discord.Embed(
-            title="Nerodia: Admin Dashboard",
-            colour=discord.Colour.blue()
-        ).add_field(
-            name="Thread Status",
-            value='\n'.join(
-                ("🍏  **Online**: " if t.is_alive() else "🔴 **Offline**: ") + t.name for t in THREADS
-            )
-        ))
-
     @commands.command(aliases=["db"])
     async def dashboard(self, ctx, subreddit_name: str=None):
-        """
-        Displays a dashboard for all information
-        about a connected reddit account, such as
-        which subreddits you moderate.
+        """A dashboard for information about a connected reddit account
 
         To get a dashboard on a per-subreddit basis,
         use `db subname`, for example `db askreddit`.
@@ -274,8 +250,7 @@ class Nerodia:
 
     @commands.command()
     async def follow(self, ctx, subreddit_name: str, *stream_names: str):
-        """
-        Follows the given stream with the given subreddit name.
+        """Follows the given stream with the given subreddit name.
         Of course, this only works if you are a moderator on the given subreddit.
         Also supports passing a list of stream names, for example:
             `follow imaqtpie bardmains discordapp`
@@ -325,9 +300,8 @@ class Nerodia:
 
     @commands.command()
     async def unfollow(self, ctx, subreddit_name: str, *stream_names: str):
-        """
-        Unfollows the given streams on the
-        given Subreddit. Of course, you must
+        """Unfollows the given streams on the given Subreddit.
+        Of course, you must
         be a Moderator on the Subreddit to
         use this command. Like the follow
         command, this support passing a list

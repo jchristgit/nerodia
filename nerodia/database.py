@@ -16,8 +16,8 @@ from prawcore.exceptions import NotFound
 
 from . import models as db
 from . import poller
+from .clients import reddit
 from .util import db_lock, reddit_lock
-from .workers import reddit
 
 
 @functools.lru_cache(maxsize=32)

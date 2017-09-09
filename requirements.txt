@@ -1,19 +1,25 @@
 aiohttp==2.2.5
-async-timeout==1.2.1
+async-timeout==1.3.0
 certifi==2017.7.27.1
 chardet==3.0.4
-git+https://github.com/Rapptz/discord.py@rewrite
+click==6.7
+-e git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py
+first==2.0.1
 idna==2.6
 multidict==3.1.3
-praw==5.0.1
-prawcore==0.11.0
+packaging==16.8
+pip-review==1.0
+pip-tools==1.9.0
+praw==5.1.0
+prawcore==0.12.0
 py==1.4.34
-pytest==3.2.1
-python-twitch-client==0.3.0
+pyparsing==2.2.0
+pytest==3.2.2
+-e git+https://github.com/Volcyy/python-twitch-client@api-error-handling#egg=twitch
 requests==2.18.4
 six==1.10.0
-SQLAlchemy==1.1.13
+SQLAlchemy==1.1.14
 update-checker==0.16
 urllib3==1.22
-websockets==3.3
+websockets==3.4
 yarl==0.12.0

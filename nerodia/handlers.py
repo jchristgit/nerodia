@@ -34,12 +34,11 @@ def verify(msg: praw.models.Message):
         msg.reply(f"> {msg.body}\n\nFailed to connect accounts: Unknown token.")
 
 
-def handle_message(event: Tuple[str, praw.models.Message]) -> None:
+def handle_message(msg: praw.models.Message) -> None:
     """
     Handles the message Event and processes the new message.
     """
 
-    _, msg = event
     print('New Message from', (msg.author or msg.subreddit).name, 'contents:', msg.body)
 
     if msg.subject == "verification":

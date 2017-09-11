@@ -22,8 +22,7 @@ queue when states change.
 
 import asyncio
 
-from . import database as db
-from . import poller
+from . import database as db, poller
 from .clients import reddit
 from .handlers import handle_message, handle_stream_update
 from .util import stream_states
@@ -41,14 +40,15 @@ async def reddit_consumer():
     print("[RedditConsumer] Ready.")
     try:
         while True:
-            print("[RedditConsumer] waiting for events")
+            print("[RedditConsumer] Waiting for Events.")
             event = await event_queue.get()
-            print("[RedditConsumer] Got an event")
+            print("[RedditConsumer] Got an Event.")
             if event[0] == 'up':
-                print('Stream Status updated:', event[1])
                 handle_stream_update(event[1])
+            elif event[0] == 'msg':
+                handle_message(event[1])
             else:
-                handle_message(event)
+                print("[RedditConsumer]: Unknown Event:", event)
             event_queue.task_done()
 
     except asyncio.CancelledError:
@@ -78,9 +78,7 @@ async def twitch_producer():
                 stream_is_online = poller.is_online(stream_name)
                 # Compare the Stream state to the last one known, ignore it if it wasn't found.
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:
-                    await event_queue.put(
-                        ('up', stream_name)
-                    )
+                    await event_queue.put(('up', stream_name))
                 stream_states[stream_name] = stream_is_online
                 await asyncio.sleep(1)
             await asyncio.sleep(10)

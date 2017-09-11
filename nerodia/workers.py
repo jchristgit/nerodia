@@ -75,7 +75,7 @@ async def twitch_producer():
         while True:
             follows = db.get_all_follows()
             for stream_name in follows:
-                stream_is_online = poller.is_online(stream_name)
+                stream_is_online = await poller.is_online(stream_name)
                 # Compare the Stream state to the last one known, ignore it if it wasn't found.
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:
                     await event_queue.put(('up', stream_name))

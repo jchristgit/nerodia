@@ -12,16 +12,14 @@ The functions in this module are
 threadsafe using locks.
 """
 
-from collections import namedtuple
 from typing import Optional
 
+from . import database as db
+from .apis.twitch import TwitchUser
 from .clients import twitch
 
 
-TwitchUser = namedtuple("TwitchUser", "name id")
-
-
-def get_user_info(stream_name: str) -> Optional[TwitchUser]:
+async def get_user_info(stream_name: str) -> Optional[TwitchUser]:
     """
     Returns a TwitchUser containing a properly cased
     name for the given stream name as well as its ID,
@@ -37,13 +35,10 @@ def get_user_info(stream_name: str) -> Optional[TwitchUser]:
                               When it does not exist, returns `None`.
     """
 
-    user = twitch.users.translate_usernames_to_ids(stream_name)
-    if not user:
-        return None
-    return TwitchUser(name=user[0].name, id=user[0].id)
+    return await twitch.translate_username_to_id(stream_name)
 
 
-def is_online(stream_name: str) -> bool:
+async def is_online(stream_name: str) -> bool:
     """
     Checks whether the given stream is online.
     It is highly recommended to validate that
@@ -57,5 +52,5 @@ def is_online(stream_name: str) -> bool:
         bool: Whether the stream under the given ID is online.
     """
 
-    user = get_user_info(stream_name)
-    return twitch.streams.get_stream_by_user(user.id) is not None
+    stream_id = await db.get_stream_id(stream_name)
+    return await twitch.get_stream_by_user(stream_id) is not None

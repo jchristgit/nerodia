@@ -7,6 +7,7 @@ call to either the Reddit
 or the Twitch API.
 """
 
+import asyncio
 import unittest
 
 from nerodia import database as db
@@ -14,10 +15,14 @@ from nerodia import database as db
 
 class StreamDatabaseTestCase(unittest.TestCase):
     def setUp(self):
-        """This test does not require any setup."""
+        """Sets up an event loop for running coroutines."""
+
+        self.loop = asyncio.get_event_loop()
 
     def tearDown(self):
-        """Nothing was created in `setUp`, thus this function does nothing."""
+        """Cleans up the event loop."""
+
+        self.loop.close()
 
     def test_stream_id(self):
         """
@@ -27,6 +32,9 @@ class StreamDatabaseTestCase(unittest.TestCase):
         an integer for an existing stream.
         """
 
-        self.assertIsInstance(db.get_stream_id("volcyy"), int)
+        known_stream_id = self.loop.run_until_complete(db.get_stream_id("volcyy"))
+        self.assertIsInstance(known_stream_id, int)
 
-        self.assertIsNone(db.get_stream_id("definitelyunknownstreamthatwillneverexist"))
+        future = db.get_stream_id("definitelyunknownstreamthatwillneverexist")
+        unknown_stream_id = self.loop.run_until_complete(future)
+        self.assertIsNone(unknown_stream_id)

@@ -273,7 +273,7 @@ class Nerodia:
                       f"My reddit name is **`{BOT_REDDIT_NAME}`**."
             ))
 
-        valid_streams = (s for s in stream_names if db.stream_exists(s))
+        valid_streams = (s for s in stream_names if await db.stream_exists(s))
         present_follows = db.get_subreddit_follows(subreddit_name)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 

@@ -3,7 +3,7 @@ Provides handlers for the various events
 that are produced by the RedditProducer.
 """
 
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional
 
 import praw
 
@@ -87,15 +87,14 @@ def notify_update(sub: str):
     stream_start_idx = find_stream_start_idx(current_sidebar)
     if stream_start_idx is None:
         print(sub, "is following streams, but no header was found.")
-        return
-    clean_sidebar = remove_old_stream_list(current_sidebar)
-    sidebar_with_streams = add_stream_list(
-        clean_sidebar,
-        stream_start_idx,
-        (stream for stream in db.get_subreddit_follows(sub) if stream_states[stream])
-    )
-    print(sidebar_with_streams)
-    mod_relationship.update(description=sidebar_with_streams)
+    else:
+        clean_sidebar = remove_old_stream_list(current_sidebar)
+        sidebar_with_streams = add_stream_list(
+            clean_sidebar,
+            stream_start_idx,
+            (stream for stream in db.get_subreddit_follows(sub) if stream_states[stream])
+        )
+        mod_relationship.update(description=sidebar_with_streams)
 
 
 def find_stream_start_idx(sidebar: str) -> Optional[int]:

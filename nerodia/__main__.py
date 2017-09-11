@@ -18,7 +18,7 @@ exit their while polling loop.
 import asyncio
 
 from .bot import NerodiaDiscordBot
-from .clients import discord_game, discord_token
+from .clients import discord_game, discord_token, twitch
 from .workers import reddit_consumer, reddit_producer, twitch_producer
 
 
@@ -33,12 +33,12 @@ if __name__ == '__main__':
     try:
         loop.run_until_complete(bot.start(discord_token))
     except KeyboardInterrupt:
-        print("Stopping the workers...")
         tp.cancel()
+        twitch.close()
+
         rp.cancel()
         rc.cancel()
-        print("Workers stopped. Logging out the Discord Bot...")
+
         loop.run_until_complete(bot.logout())
-        print("Bot logged out.")
     finally:
         loop.close()

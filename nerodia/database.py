@@ -20,7 +20,7 @@ from .clients import reddit
 
 
 @functools.lru_cache(maxsize=32)
-def get_stream_id(stream_name: str) -> Optional[int]:
+async def get_stream_id(stream_name: str) -> Optional[int]:
     """
     Attempts to obtain the stream ID for the
     given Stream name from the database. If
@@ -44,7 +44,7 @@ def get_stream_id(stream_name: str) -> Optional[int]:
         first()
 
     if db_stream is None:
-        user = poller.get_user_info(stream_name)
+        user = await poller.get_user_info(stream_name)
         if user is None:
             return None
         stream_id = int(user.id)
@@ -54,7 +54,7 @@ def get_stream_id(stream_name: str) -> Optional[int]:
     return db_stream.stream_id
 
 
-def stream_exists(stream_name: str) -> bool:
+async def stream_exists(stream_name: str) -> bool:
     """
     Returns a boolean indicating whether the
     given stream exists or not.
@@ -66,7 +66,7 @@ def stream_exists(stream_name: str) -> bool:
         bool: Whether the given Stream exists.
     """
 
-    return get_stream_id(stream_name) is not None
+    return await get_stream_id(stream_name) is not None
 
 
 @functools.lru_cache(maxsize=32)

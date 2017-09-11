@@ -5,6 +5,7 @@ simpler frontend to the Reddit
 bot for easier configuration.
 """
 
+import discord
 from discord.ext import commands
 
 from . import cogs
@@ -32,11 +33,12 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
     in the `run` call.
     """
 
-    def __init__(self, token: str):
+    def __init__(self, token: str, game: str):
         super().__init__(
             command_prefix=commands.when_mentioned_or("n!"),
             description=DESCRIPTION,
-            pm_help=True
+            pm_help=True,
+            game=discord.Game(name=game)
         )
         self._token = token
 

@@ -14,15 +14,15 @@ other threads to make them
 exit their while polling loop.
 """
 
-from . import threads, workers
+from . import threads
 from .bot import NerodiaDiscordBot
-from .clients import discord_token
+from .clients import discord_game, discord_token
 
 
 if __name__ == '__main__':
     threads.start_all()
 
-    NerodiaDiscordBot(discord_token).run()
+    NerodiaDiscordBot(discord_token, discord_game).run()
     print("Stopped the Discord Bot. Stopping the Workers...")
 
     threads.shutdown_all()

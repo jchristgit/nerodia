@@ -3,6 +3,6 @@ __pycache__/
 .idea/
 .tox/
 config.json
-data/nerodia.db
+data/
 test/test.db
 venv/

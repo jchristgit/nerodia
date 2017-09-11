@@ -19,11 +19,12 @@ from twitch import TwitchClient
 
 with open("config.json") as f:
     as_json = json.load(f)
-    DISCORD_AUTH = as_json["discord_auth"]
+    DISCORD_CFG = as_json["discord"]
     REDDIT_AUTH = as_json["reddit_auth"]
     TWITCH_AUTH = as_json["twitch_auth"]
 
-discord_token = DISCORD_AUTH["token"]
+discord_token = DISCORD_CFG["token"]
+discord_game = DISCORD_CFG["game"]
 
 reddit = praw.Reddit(
     client_id=REDDIT_AUTH["client_id"],

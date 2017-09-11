@@ -33,15 +33,13 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
     in the `run` call.
     """
 
-    def __init__(self, token: str, game: str):
+    def __init__(self, game: str):
         super().__init__(
             command_prefix=commands.when_mentioned_or("n!"),
             description=DESCRIPTION,
             pm_help=True,
             game=discord.Game(name=game)
         )
-        self._token = token
-
         cogs.setup(self)
 
     async def on_ready(self):
@@ -54,13 +52,3 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
         print(f"Total: {len(self.guilds)} Guilds, {len(self.users)} users.")
         print("Invite Link:\n"
               f"https://discordapp.com/oauth2/authorize?&client_id={self.user.id}&scope=bot")
-
-    def run(self):
-        """
-        Start the bot.
-        This call does not exit until the bot
-        shuts down either through the client
-        or signal from the terminal, e.g. ^C.
-        """
-
-        super().run(self._token)

@@ -14,15 +14,33 @@ other threads to make them
 exit their while polling loop.
 """
 
-from . import threads
+import asyncio
+
+import uvloop
+
 from .bot import NerodiaDiscordBot
 from .clients import discord_game, discord_token
+from .workers import reddit_consumer, reddit_producer, twitch_producer
 
 
 if __name__ == '__main__':
-    threads.start_all()
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    loop = asyncio.get_event_loop()
 
-    NerodiaDiscordBot(discord_token, discord_game).run()
-    print("Stopped the Discord Bot. Stopping the Workers...")
+    rc = loop.create_task(reddit_consumer())
+    rp = loop.create_task(reddit_producer())
+    tp = loop.create_task(twitch_producer())
 
-    threads.shutdown_all()
+    bot = NerodiaDiscordBot(discord_game)
+    try:
+        loop.run_until_complete(bot.start(discord_token))
+    except KeyboardInterrupt:
+        print("Stopping the workers...")
+        rc.cancel()
+        rp.cancel()
+        tp.cancel()
+        print("Workers stopped.")
+        loop.run_until_complete(bot.logout())
+        print("Bot logged out.")
+    finally:
+        loop.close()

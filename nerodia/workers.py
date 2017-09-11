@@ -59,10 +59,10 @@ async def reddit_producer():
     print("[RedditProducer] Ready.")
     try:
         while True:
-            print("[RedditProducer] sleeping...")
-            # for msg in await loop.run_in_executor(None, reddit.inbox.unread):
-            #     await event_queue.put(('msg', msg))
-            #     msg.mark_read()
+            for msg in reddit.inbox.unread():
+                print("[RedditProducer] Got a message from", msg.author)
+                await event_queue.put(('msg', msg))
+                msg.mark_read()
             await asyncio.sleep(10)
 
     except asyncio.CancelledError:
@@ -73,13 +73,9 @@ async def twitch_producer():
     print("[TwitchProducer] Ready.")
     try:
         while True:
-            print("[TwitchProducer] grabbing follows...")
             follows = db.get_all_follows()
-            print("[TwitchProducer] got follows")
             for stream_name in follows:
-                print("[TwitchProducer] polling", stream_name)
                 stream_is_online = poller.is_online(stream_name)
-                print("[TwitchProducer] stream online:", stream_is_online)
                 # Compare the Stream state to the last one known, ignore it if it wasn't found.
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:
                     await event_queue.put(

@@ -9,7 +9,7 @@ import praw
 
 from . import database as db
 from .clients import reddit
-from .util import stream_lock, stream_states, reddit_lock, token_dict, token_lock, verify_dict, verify_lock
+from .util import stream_states, token_dict, verify_dict
 
 
 def verify(msg: praw.models.Message):
@@ -20,22 +20,18 @@ def verify(msg: praw.models.Message):
     Discord account for easy usage of other commands.
     """
 
-    with token_lock:
-        for key, val in token_dict.items():
-            if msg.body == val:
-                discord_id = key
-                break
-        else:
-            discord_id = None
+    for key, val in token_dict.items():
+        if msg.body == val:
+            discord_id = key
+            break
+    else:
+        discord_id = None
 
     if discord_id is not None:
-        with verify_lock:
-            verify_dict[discord_id] = msg.author.name
-        with reddit_lock:
-            msg.reply("You have connected your accounts successfully!")
+        verify_dict[discord_id] = msg.author.name
+        msg.reply("You have connected your accounts successfully!")
     else:
-        with reddit_lock:
-            msg.reply(f"> {msg.body}\n\nFailed to connect accounts: Unknown token.")
+        msg.reply(f"> {msg.body}\n\nFailed to connect accounts: Unknown token.")
 
 
 def handle_message(event: Tuple[str, praw.models.Message]) -> None:
@@ -49,8 +45,7 @@ def handle_message(event: Tuple[str, praw.models.Message]) -> None:
     if msg.subject == "verification":
         verify(msg)
     elif msg.body.startswith("**gadzooks!"):
-        with reddit_lock:
-            msg.subreddit.mod.accept_invite()
+        msg.subreddit.mod.accept_invite()
         print(f"Accepted a Moderator invitation to {msg.subreddit}.")
 
 
@@ -88,26 +83,20 @@ def notify_update(sub: str):
             The Subreddit on which the update should be performed.
     """
 
-    with reddit_lock:
-        mod_relationship = reddit.subreddit(sub).mod
-        current_sidebar = mod_relationship.settings()["description"]
-    print(current_sidebar)
+    mod_relationship = reddit.subreddit(sub).mod
+    current_sidebar = mod_relationship.settings()["description"]
     stream_start_idx = find_stream_start_idx(current_sidebar)
-    print(stream_start_idx)
     if stream_start_idx is None:
         print(sub, "is following streams, but no header was found.")
         return
     clean_sidebar = remove_old_stream_list(current_sidebar)
-    print(clean_sidebar)
-    with stream_lock:
-        sidebar_with_streams = add_stream_list(
-            clean_sidebar,
-            stream_start_idx,
-            (stream for stream in db.get_subreddit_follows(sub) if stream_states[stream])
-        )
-        print(sidebar_with_streams)
-        with reddit_lock:
-            mod_relationship.update(description=sidebar_with_streams)
+    sidebar_with_streams = add_stream_list(
+        clean_sidebar,
+        stream_start_idx,
+        (stream for stream in db.get_subreddit_follows(sub) if stream_states[stream])
+    )
+    print(sidebar_with_streams)
+    mod_relationship.update(description=sidebar_with_streams)
 
 
 def find_stream_start_idx(sidebar: str) -> Optional[int]:

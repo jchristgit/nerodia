@@ -11,10 +11,8 @@ various other issues.
 import discord
 
 from ..clients import reddit
-from ..util import reddit_lock
 
-with reddit_lock:
-    BOT_REDDIT_NAME = reddit.user.me()
+BOT_REDDIT_NAME = reddit.user.me()
 
 ALREADY_CONNECTED_EMBED = discord.Embed(
     title="Cannot connect accounts:",

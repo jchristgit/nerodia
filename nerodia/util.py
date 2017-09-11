@@ -10,32 +10,14 @@ import string
 import threading
 
 
-# Used for any statement execution calls to the database.
-db_lock = threading.Lock()
-
-# Used for any invocation of PRAW functions.
-reddit_lock = threading.Lock()
-
 # Stores information about the stream status (online / offline) of all streams known.
 stream_states = dict()
-
-# Used for access and mofication to the above dictionary.
-stream_lock = threading.Lock()
 
 # A Discord ID -> verification token mapping.
 token_dict = dict()
 
-# Used for modifications and access to above dictionary.
-token_lock = threading.Lock()
-
-# Used for any queries to the Twitch API.
-twitch_lock = threading.Lock()
-
 # Used to verify users. To be used along with the lock defined below.
 verify_dict = dict()
-
-# Used for modifications to the verification dictionary.
-verify_lock = threading.Lock()
 
 
 def random_string(length: int = 15):
@@ -67,5 +49,4 @@ def remove_token(user_id: str):
         user_id (str): The user ID which should be removed from the dict.
     """
 
-    with token_lock:
-        del token_dict[user_id]
+    del token_dict[user_id]

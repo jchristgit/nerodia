@@ -23,9 +23,9 @@ import datetime
 import os
 
 from sqlalchemy import BigInteger, Column, DateTime, Integer, String
-from sqlalchemy import ForeignKey, Table
+from sqlalchemy import ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 
@@ -40,13 +40,6 @@ Base = declarative_base()
 Session = sessionmaker()
 
 
-# pylint: disable=bad-continuation
-ASSOCIATION_TABLE = Table("association", Base.metadata,
-    Column('subreddit_id', Integer, ForeignKey('subreddit.id')),
-    Column('stream_id', Integer, ForeignKey("stream.id"))
-)  # noqa
-
-
 class Stream(Base):
     """
     The Stream table, used to obtain
@@ -57,8 +50,8 @@ class Stream(Base):
     __tablename__ = "stream"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(30))
-    stream_id = Column(Integer)
+    name = Column(String(30), nullable=False)
+    stream_id = Column(Integer, nullable=False)
     added_on = Column(DateTime, default=datetime.datetime.now())
 
 
@@ -74,14 +67,25 @@ class Subreddit(Base):
     __tablename__ = "subreddit"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(30))
+    name = Column(String(30), nullable=False)
     follows = Column(String(30), ForeignKey("stream.name"))
-    all_follows = relationship(
-        "Stream",
-        secondary=ASSOCIATION_TABLE,
-        backref=backref('followed_by', lazy='dynamic'),
-        lazy='dynamic'
-    )
+
+
+class Guild(Base):
+    """
+    The Guild table, which
+    represents a Discord guild
+    following a stream. A single
+    Discord guild can follow 0-n
+    Streams, and will receive
+    updates for it in a channel
+    set through the Discord bot.
+    """
+
+    __tablename__ = "guild"
+
+    discord_id = Column(BigInteger, primary_key=True)
+    follows = Column(String(30), ForeignKey("stream.name"))
 
 
 class DRConnection(Base):
@@ -96,7 +100,7 @@ class DRConnection(Base):
     __tablename__ = "drmapping"
 
     discord_id = Column(BigInteger, primary_key=True)
-    reddit_name = Column(String(30))
+    reddit_name = Column(String(30), nullable=False)
 
 
 engine = create_engine(f"sqlite:///{DB_PATH}")

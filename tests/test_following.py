@@ -46,7 +46,7 @@ class TwoFollowsOneSubredditTestCase(unittest.TestCase):
         would happen, although unlikely)
         """
 
-        db.follow("test-sub", "test-stream", "test-stream-2")
+        db.subreddit_follow("test-sub", "test-stream", "test-stream-2")
 
     def tearDown(self):
         """
@@ -55,7 +55,7 @@ class TwoFollowsOneSubredditTestCase(unittest.TestCase):
         along with the two streams it followed.
         """
 
-        db.unfollow("test-sub", "test-stream", "test-stream-2")
+        db.subreddit_unfollow("test-sub", "test-stream", "test-stream-2")
 
     def test_sub_follows_streams(self):
         """

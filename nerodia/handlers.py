@@ -62,6 +62,7 @@ def handle_stream_update(stream_name: str):
     """
 
     following_subreddits = db.get_subreddits_following(stream_name)
+    # following_discords = pass
     print("stream status update on", stream_name)
     print("Following:", following_subreddits)
 

@@ -99,10 +99,7 @@ class DRConnection(Base):
     reddit_name = Column(String(30))
 
 
-engine = create_engine(
-    f"sqlite:///{DB_PATH}",
-    connect_args={'check_same_thread': False}
-)
+engine = create_engine(f"sqlite:///{DB_PATH}")
 Base.metadata.create_all(engine)
 Session.configure(bind=engine)
 session = Session()

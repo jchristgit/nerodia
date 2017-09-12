@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pytest = "*"
+tox = "*"
+
+[packages]
+aiohttp = "*"
+praw = "*"
+SQLAlchemy = "*"
+
+[packages."discord.py"]
+git = "https://github.com/rapptz/discord.py"
+editable = true
+ref = "rewrite"
+
+[packages.twitch]
+git = "https://github.com/volcyy/python-twitch-client"
+editable = true
+ref = "api-error-handling"

@@ -19,7 +19,6 @@ from . import poller
 from .clients import reddit
 
 
-@functools.lru_cache(maxsize=32)
 async def get_stream_id(stream_name: str) -> Optional[int]:
     """
     Attempts to obtain the stream ID for the
@@ -248,7 +247,25 @@ def get_subreddits_following(stream_name: str) -> List[str]:
     return [s.name for s in result]
 
 
-def follow(subreddit_name: str, *stream_names: str):
+def get_guilds_following(stream_name: str) -> List[int]:
+    """
+    Returns a list of Discord guilds - specifically,
+    their IDs - that are following the given stream.
+
+    Arguments:
+        stream_name (str): The stream name which followers should be returned.
+
+    Returns:
+        List[int]: A list of Discord guild IDs following the given stream.
+    """
+
+    result = db.session.query(db.Guild.discord_id) \
+        .filter(db.Guild.follows == stream_name) \
+        .distinct()
+    return [g.discord_id for g in result]
+
+
+def subreddit_follow(subreddit_name: str, *stream_names: str):
     """
     Follows the given argument list of streams
     with the given subreddit. Make sure to validate
@@ -272,7 +289,7 @@ def follow(subreddit_name: str, *stream_names: str):
     db.session.commit()
 
 
-def unfollow(subreddit_name: str, *stream_names: str):
+def subreddit_unfollow(subreddit_name: str, *stream_names: str):
     """
     Unfollows the given argument list of streams
     with the given subreddit. As for the follow

@@ -85,8 +85,8 @@ def subreddit_exists(subreddit_name: str) -> bool:
             Whether the Subreddit exists or not.
     """
 
-    db_sub = db.session.query(db.Subreddit) \
-        .filter(db.Subreddit.name == subreddit_name) \
+    db_sub = db.session.query(db.Follow) \
+        .filter(db.Follow.sub_name == subreddit_name) \
         .first()
     if db_sub is None:
         try:
@@ -124,12 +124,6 @@ def add_dr_connection(discord_id: int, reddit_name: str):
     Arguments:
         discord_id (int): The Discord ID of the user who invoked a command.
         reddit_name (str): The reddit name of the user.
-
-    Notes:
-        Since this function is only called on the
-        main thread (in the discord Bot, specifically
-        the Nerodia cog), this does not use
-        any locking mechanism.
     """
 
     db.session.add(db.DRConnection(discord_id=discord_id, reddit_name=reddit_name))
@@ -200,7 +194,10 @@ def get_moderated_subreddits(reddit_name: str) -> Generator[str, None, None]:
     # attribute, such as `db.Subreddit.name` in this case, we flatten the
     # list using a generator so we have a list of known subreddits.
     all_subs = (
-        n.name for n in db.session.query(db.Subreddit.name).distinct().all()
+        n.sub_name for n in
+        db.session.query(db.Follow.sub_name)
+        .filter(db.Follow.sub_name.isnot(None))
+        .distinct()
     )
     return (
         sub_name
@@ -225,7 +222,27 @@ def get_subreddit_follows(sub_name: str) -> List[str]:
 
     # As above, we flatten the result of the query since SQLAlchemy
     # returns the result as a list of tuples with a single element.
-    result = db.session.query(db.Subreddit.follows).filter_by(name=sub_name)
+    result = db.session.query(db.Follow.follows) \
+        .filter(db.Follow.sub_name == sub_name)
+    return [s for row_tuple in result for s in row_tuple]
+
+
+def get_guild_follows(guild_id: int) -> List[str]:
+    """
+    Returns a list of Twitch stream names which
+    the given Discord Guild ID is following.
+
+    Arguments:
+        guild_id (int):
+            The Guild for which to obtain the follows.
+
+    Returns:
+        List[str]:
+            A list of Twitch stream names that the guild is following.
+    """
+
+    result = db.session.query(db.Follow.follows) \
+        .filter(db.Follow.guild_id == guild_id)
     return [s for row_tuple in result for s in row_tuple]
 
 
@@ -241,10 +258,10 @@ def get_subreddits_following(stream_name: str) -> List[str]:
         List[str]: A list of subreddits that are following the stream.
     """
 
-    result = db.session.query(db.Subreddit.name) \
-        .filter(db.Subreddit.follows == stream_name) \
-        .distinct()
-    return [s.name for s in result]
+    result = db.session.query(db.Follow.sub_name) \
+        .filter(db.Follow.sub_name.isnot(None)) \
+        .filter(db.Follow.follows == stream_name)
+    return [s.sub_name for s in result]
 
 
 def get_guilds_following(stream_name: str) -> List[int]:
@@ -259,10 +276,10 @@ def get_guilds_following(stream_name: str) -> List[int]:
         List[int]: A list of Discord guild IDs following the given stream.
     """
 
-    result = db.session.query(db.Guild.discord_id) \
-        .filter(db.Guild.follows == stream_name) \
-        .distinct()
-    return [g.discord_id for g in result]
+    result = db.session.query(db.Follow.guild_id) \
+        .filter(db.Follow.guild_id.isnot(None)) \
+        .filter(db.Follow.follows == stream_name)
+    return [g.guild_id for g in result]
 
 
 def subreddit_follow(subreddit_name: str, *stream_names: str):
@@ -284,7 +301,28 @@ def subreddit_follow(subreddit_name: str, *stream_names: str):
     """
 
     db.session.add_all(
-        db.Subreddit(name=subreddit_name, follows=stream) for stream in stream_names
+        db.Follow(stream, sub_name=subreddit_name) for stream in stream_names
+    )
+    db.session.commit()
+
+
+def guild_follow(guild_id: int, *stream_names: str):
+    """
+    Follows the given argument list of streams
+    with the given Discord guild.
+
+    For further information, view the
+    docstring for `subreddit_exists` above.
+
+    Arguments:
+        guild_id (int):
+            The Guild ID which should follow the given argument list of streams.
+        stream_names (str):
+            An argument list of stream names that should be followed.
+    """
+
+    db.session.add_all(
+        db.Follow(stream, guild_id=guild_id) for stream in stream_names
     )
     db.session.commit()
 
@@ -311,9 +349,35 @@ def subreddit_unfollow(subreddit_name: str, *stream_names: str):
             if they are being followed at the time this function is called.
     """
 
-    db.session.query(db.Subreddit) \
-        .filter(db.Subreddit.name == subreddit_name) \
-        .filter(db.Subreddit.follows.in_(stream_names)) \
+    db.session.query(db.Follow) \
+        .filter(db.Follow.sub_name == subreddit_name) \
+        .filter(db.Follow.follows.in_(stream_names)) \
+        .delete(synchronize_session='fetch')
+    db.session.commit()
+
+
+def guild_unfollow(guild_id: int, *stream_names: str):
+    """
+    Unfollow the given argument list of streams
+    on the Discord Guild with the given ID.
+
+    Look at the docstring for `subreddit_follow`
+    for further information about this.
+
+
+    Arguments:
+        guild_id (int):
+            The Discord Guild ID for the guild on which the
+            given argument list of streams should be unfollowed.
+        stream_names (str):
+            An argument list of stream names which should
+            be unfollowed, given that they are being followed
+            when this function is called.
+    """
+
+    db.session.query(db.Follow) \
+        .filter(db.Follow.guild_id == guild_id) \
+        .filter(db.Follow.follows.in_(stream_names)) \
         .delete(synchronize_session='fetch')
     db.session.commit()
 
@@ -321,14 +385,16 @@ def subreddit_unfollow(subreddit_name: str, *stream_names: str):
 def get_all_follows() -> List[str]:
     """
     Gets a list of all streams that are
-    being followed by various guilds.
+    being followed by various Subreddits
+    and Discord guilds.
 
     Returns:
         List[str]:
             A list of unique streams that are
-            being followed by various subreddits.
+            being followed by various subreddits,
+            as well as Discord guilds.
     """
 
-    return [
-        s.follows for s in db.session.query(db.Subreddit.follows).distinct().all()
-    ]
+    result = db.session.query(db.Follow.follows) \
+        .distinct()
+    return [row.follows for row in result]

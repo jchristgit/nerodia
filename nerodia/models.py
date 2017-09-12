@@ -52,40 +52,30 @@ class Stream(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(30), nullable=False)
     stream_id = Column(Integer, nullable=False)
-    added_on = Column(DateTime, default=datetime.datetime.now())
+    added_on = Column(DateTime, default=datetime.datetime.utcnow())
 
 
-class Subreddit(Base):
+class Follow(Base):
     """
-    The Subreddit table, which
-    is used to associate the
-    streams being followed with
-    the subreddits on which they
-    are being followed.
+    The follow table, which
+    associates either a Discord
+    Guild ID or a subreddit name
+    with a stream name that it
+    is following.
     """
 
-    __tablename__ = "subreddit"
+    __tablename__ = "follow"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(30), nullable=False)
-    follows = Column(String(30), ForeignKey("stream.name"))
+    guild_id = Column(BigInteger)
+    sub_name = Column(String(30))
+    follows = Column(String(30), ForeignKey("stream.name"), nullable=False)
+    followed_on = Column(DateTime, default=datetime.datetime.utcnow())
 
-
-class Guild(Base):
-    """
-    The Guild table, which
-    represents a Discord guild
-    following a stream. A single
-    Discord guild can follow 0-n
-    Streams, and will receive
-    updates for it in a channel
-    set through the Discord bot.
-    """
-
-    __tablename__ = "guild"
-
-    discord_id = Column(BigInteger, primary_key=True)
-    follows = Column(String(30), ForeignKey("stream.name"))
+    def __init__(self, follows: str, *, guild_id: int=None, sub_name: str=None):
+        self.follows = follows
+        self.guild_id = guild_id
+        self.sub_name = sub_name
 
 
 class UpdateChannel(Base):

@@ -88,6 +88,22 @@ class Guild(Base):
     follows = Column(String(30), ForeignKey("stream.name"))
 
 
+class UpdateChannel(Base):
+    """
+    The UpdateChannel table, which
+    contains the Guild Discord ID
+    and its associated channel ID
+    in which stream updates are
+    posted. This can be set through
+    the Discord Bot interface.
+    """
+
+    __tablename__ = "updatechannel"
+
+    channel_id = Column(BigInteger, primary_key=True)
+    guild_id = Column(BigInteger, ForeignKey("guild.discord_id"))
+
+
 class DRConnection(Base):
     """
     The Discord ID <-> Reddit table.

@@ -241,7 +241,7 @@ class Nerodia:
             ))
 
     @commands.command()
-    async def follow(self, ctx, subreddit_name: str, *stream_names: str):
+    async def sfollow(self, ctx, subreddit_name: str, *stream_names: str):
         """Follows the given stream with the given subreddit name.
         Of course, this only works if you are a moderator on the given subreddit.
         Also supports passing a list of stream names, for example:
@@ -291,7 +291,7 @@ class Nerodia:
         ))
 
     @commands.command()
-    async def unfollow(self, ctx, subreddit_name: str, *stream_names: str):
+    async def sunfollow(self, ctx, subreddit_name: str, *stream_names: str):
         """Unfollows the given streams on the given Subreddit.
         Of course, you must
         be a Moderator on the Subreddit to

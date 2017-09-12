@@ -4,5 +4,5 @@ __pycache__/
 .tox/
 config.json
 data/
-test/test.db
+tests/test.db
 venv/

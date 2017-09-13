@@ -31,11 +31,13 @@ async def get_user_info(stream_name: str) -> Optional[TwitchUser]:
 
     Returns:
         Optional[TwitchUser]: When the stream exists, a named tuple with
-                              the attributes `name` and `id` is returned.
+                              various keys returned from the API is
+                              returned. Please view `TwitchUser` in the
+                              `apis/twitch.py` module for further information.
                               When it does not exist, returns `None`.
     """
 
-    return await twitch.translate_username_to_id(stream_name)
+    return await twitch.get_user_info_by_name(stream_name)
 
 
 async def is_online(stream_name: str) -> bool:

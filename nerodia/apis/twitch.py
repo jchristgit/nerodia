@@ -61,13 +61,13 @@ class TwitchClient:
 
             return await res.json()
 
-    async def translate_username_to_id(self, name) -> Optional[TwitchUser]:
+    async def get_user_info_by_name(self, name) -> Optional[TwitchUser]:
         resp = await self._request_get(f'users?login={name}')
         if resp['_total'] == 0:
             return None
 
         user = resp['users'][0]
-        return TwitchUser(name=user['name'], id=user['_id'], bio=user['bio'],
+        return TwitchUser(name=user['name'], id=int(user['_id']), bio=user['bio'],
                           created_at=user['created_at'], updated_at=user['updated_at'],
                           logo=user['logo'], display_name=user['display_name'])
 

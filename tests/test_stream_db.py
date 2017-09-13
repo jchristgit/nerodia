@@ -14,6 +14,14 @@ from nerodia import database as db
 
 
 class StreamDatabaseTestCase(unittest.TestCase):
+    """
+    Tests the `get_stream_id` function of the stream
+    database. It would be beneficial to mock PRAW's
+    API response, since most of what we're testing
+    here is that the database cache will not modify
+    the response from the API in any way.
+    """
+
     def setUp(self):
         """Sets up an event loop for running coroutines."""
 

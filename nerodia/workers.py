@@ -29,7 +29,8 @@ from .util import stream_states
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
 # The following events are implemented:
-# ('up', <stream_name>) - stream status update. check stream_states for details.
+# ('on', <stream_name>) - stream status update. stream went online
+# ('off', <stream_name>) - stream status update. stream went offline
 # ('msg', <message_instance>) - sent when a message is received from an authorized user.
 event_queue = asyncio.Queue()
 
@@ -42,13 +43,17 @@ async def reddit_consumer():
         while True:
             print("[RedditConsumer] Waiting for Events.")
             event = await event_queue.get()
-            print("[RedditConsumer] Got an Event.")
-            if event[0] == 'up':
-                handle_stream_update(event[1])
+            print("[RedditConsumer] Got an Event:", event)
+
+            if event[0] == 'on':
+                await handle_stream_update(event[1], is_online=True)
+            elif event[0] == 'off':
+                await handle_stream_update(event[1], is_online=False)
             elif event[0] == 'msg':
                 handle_message(event[1])
             else:
                 print("[RedditConsumer]: Unknown Event:", event)
+
             event_queue.task_done()
 
     except asyncio.CancelledError:
@@ -78,7 +83,10 @@ async def twitch_producer():
                 stream_is_online = await poller.is_online(stream_name)
                 # Compare the Stream state to the last one known, ignore it if it wasn't found.
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:
-                    await event_queue.put(('up', stream_name))
+                    print("[TwitchProducer] Stream update on:", stream_name, "online:", stream_is_online)
+                    await event_queue.put(
+                        ('on' if stream_is_online else 'off', stream_name)
+                    )
                 stream_states[stream_name] = stream_is_online
                 await asyncio.sleep(1)
             await asyncio.sleep(10)

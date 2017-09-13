@@ -51,7 +51,6 @@ class Stream(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(30), nullable=False)
-    stream_id = Column(Integer, nullable=False)
     added_on = Column(DateTime, default=datetime.datetime.utcnow())
 
 
@@ -90,8 +89,8 @@ class UpdateChannel(Base):
 
     __tablename__ = "updatechannel"
 
+    guild_id = Column(BigInteger, nullable=False, unique=True)
     channel_id = Column(BigInteger, primary_key=True)
-    guild_id = Column(BigInteger, ForeignKey("guild.discord_id"))
 
 
 class DRConnection(Base):

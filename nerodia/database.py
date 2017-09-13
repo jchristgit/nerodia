@@ -46,11 +46,10 @@ async def get_stream_id(stream_name: str) -> Optional[int]:
         user = await poller.get_user_info(stream_name)
         if user is None:
             return None
-        stream_id = int(user.id)
-        db.session.add(db.Stream(name=user.name, stream_id=stream_id))
-        return stream_id
+        db.session.add(db.Stream(name=user.name, id=user.id))
+        return user.id
 
-    return db_stream.stream_id
+    return db_stream.id
 
 
 async def stream_exists(stream_name: str) -> bool:
@@ -380,6 +379,74 @@ def guild_unfollow(guild_id: int, *stream_names: str):
         .filter(db.Follow.follows.in_(stream_names)) \
         .delete(synchronize_session='fetch')
     db.session.commit()
+
+
+def set_guild_update_channel(guild_id: int, channel_id: int):
+    """
+    Sets the stream announcement channel
+    for the given Guild ID to the given
+    channel ID, resulting in all stream
+    updates for streams that the guild
+    is following to be posted in it.
+
+    Arguments:
+        guild_id (int):
+            The guild for which the channel should be set.
+        channel_id (int):
+            The channel ID for the channel in which the
+            stream update announcements should be posted.
+    """
+
+    print("guild set channel!")
+    db.session.add(db.UpdateChannel(
+        guild_id=guild_id, channel_id=channel_id)
+    )
+    db.session.commit()
+
+
+def unset_guild_update_channel(guild_id: int):
+    """
+    Unsets the stream announcement
+    channel for the given Guild ID.
+    Does nothing if the guild has
+    no stream update announcement
+    channel set.
+
+    Arguments:
+        guild_id (int):
+            The guild ID for which the stream
+            update announcement channel should
+            be unset.
+    """
+
+    db.session.query(db.UpdateChannel) \
+        .filter(db.UpdateChannel.guild_id == guild_id) \
+        .delete(synchronize_session='fetch')
+
+
+def get_guild_update_channel(guild_id: int) -> Optional[int]:
+    """
+    Gets the channel ID in which stream announcements
+    should be posted for the given Guild ID.
+
+    Arguments:
+        guild_id (int):
+            The Discord guild ID for which the stream
+            update channel ID should be returned.
+
+    Returns:
+        Optional[int]:
+            The channel ID for the stream update channel,
+            or `None` if no channel was set.
+    """
+
+    result = db.session.query(db.UpdateChannel) \
+        .filter(db.UpdateChannel.guild_id == guild_id) \
+        .first()
+
+    if result is not None:
+        return result.channel_id
+    return None
 
 
 def get_all_follows() -> List[str]:

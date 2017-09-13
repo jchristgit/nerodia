@@ -17,8 +17,8 @@ exit their while polling loop.
 
 import asyncio
 
-from .bot import NerodiaDiscordBot
-from .clients import discord_game, discord_token, twitch
+from .bot import discord_bot
+from .clients import discord_token, twitch
 from .workers import reddit_consumer, reddit_producer, twitch_producer
 
 
@@ -29,9 +29,8 @@ if __name__ == '__main__':
     rp = loop.create_task(reddit_producer())
     tp = loop.create_task(twitch_producer())
 
-    bot = NerodiaDiscordBot(discord_game)
     try:
-        loop.run_until_complete(bot.start(discord_token))
+        loop.run_until_complete(discord_bot.start(discord_token))
     except KeyboardInterrupt:
         tp.cancel()
         twitch.close()
@@ -39,6 +38,6 @@ if __name__ == '__main__':
         rp.cancel()
         rc.cancel()
 
-        loop.run_until_complete(bot.logout())
+        loop.run_until_complete(discord_bot.logout())
     finally:
         loop.close()

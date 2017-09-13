@@ -9,6 +9,7 @@ import discord
 from discord.ext import commands
 
 from . import cogs
+from .clients import discord_game
 
 
 DESCRIPTION = (
@@ -26,11 +27,6 @@ DESCRIPTION = (
 class NerodiaDiscordBot(commands.AutoShardedBot):
     """
     The base class for the discord Bot.
-    This is a bit different from the
-    usual discord.py bot since it takes
-    the login token in the constructor,
-    and in exchange takes no arguments
-    in the `run` call.
     """
 
     def __init__(self, game: str):
@@ -52,3 +48,6 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
         print(f"Total: {len(self.guilds)} Guilds, {len(self.users)} users.")
         print("Invite Link:\n"
               f"https://discordapp.com/oauth2/authorize?&client_id={self.user.id}&scope=bot")
+
+
+discord_bot = NerodiaDiscordBot(discord_game)

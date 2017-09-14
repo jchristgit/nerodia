@@ -25,7 +25,6 @@ import asyncio
 from . import database as db, poller
 from .clients import reddit
 from .handlers import handle_message, handle_stream_update
-from .util import stream_states
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
 # The following events are implemented:
@@ -34,6 +33,7 @@ from .util import stream_states
 # ('msg', <message_instance>) - sent when a message is received from an authorized user.
 event_queue = asyncio.Queue()
 
+stream_states = dict()
 loop = asyncio.get_event_loop()
 
 
@@ -83,7 +83,6 @@ async def twitch_producer():
                 stream_is_online = await poller.is_online(stream_name)
                 # Compare the Stream state to the last one known, ignore it if it wasn't found.
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:
-                    print("[TwitchProducer] Stream update on:", stream_name, "online:", stream_is_online)
                     await event_queue.put(
                         ('on' if stream_is_online else 'off', stream_name)
                     )

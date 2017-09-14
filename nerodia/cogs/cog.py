@@ -241,6 +241,7 @@ class Nerodia:
             ))
 
     @commands.command(name="gdb")
+    @commands.guild_only()
     async def guild_dashboard(self, ctx):
         """A dashboard for information about the Guild.
 
@@ -310,6 +311,7 @@ class Nerodia:
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
+    @commands.guild_only()
     async def gfollow(self, ctx, *stream_names: str):
         """Follows the given streams on the current Guild.
 
@@ -383,6 +385,7 @@ class Nerodia:
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
+    @commands.guild_only()
     async def gunfollow(self, ctx, *stream_names: str):
         """Unfollows the given list of streams on the current Guild.
 
@@ -414,6 +417,7 @@ class Nerodia:
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
+    @commands.guild_only()
     async def setchannel(self, ctx):
         """Sets the stream update announcement channel.
 

@@ -50,16 +50,24 @@ class TwitchClient:
         if self._cs is not None:
             self._cs.close()
 
-    async def _request_get(self, route: str, *, attempt=1) -> dict:
+    async def _get_with_backoff(self, route, attempt=0):
+        await asyncio.sleep(0.5 * attempt)
+        try:
+            async with self._cs.get(BASE_URL + route, headers=self._headers) as res:
+                if res.status >= 500:
+                    return await self._get_with_backoff(route, attempt + 1)
+                else:
+                    print("backed off successfully, attempt:", attempt)
+                    return await res.json()
+
+        except (ConnectionResetError, aiohttp.client_exceptions.ServerDisconnectedError):
+            return await self._get_with_backoff(route, attempt + 1)
+
+    async def _request_get(self, route: str) -> dict:
         if self._cs is None:
             await self.init()
 
-        async with self._cs.get(BASE_URL + route, headers=self._headers) as res:
-            if res.status >= 500:
-                await asyncio.sleep(0.5 * attempt)
-                return await self._request_get(route, attempt=attempt + 1)
-
-            return await res.json()
+        return await self._get_with_backoff(route)
 
     async def get_user_info_by_name(self, name) -> Optional[TwitchUser]:
         resp = await self._request_get(f'users?login={name}')

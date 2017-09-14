@@ -57,7 +57,7 @@ class TwitchClient:
         async with self._cs.get(BASE_URL + route, headers=self._headers) as res:
             if res.status >= 500:
                 await asyncio.sleep(0.5 * attempt)
-                return await self._request_get(route, attempt + 1)
+                return await self._request_get(route, attempt=attempt + 1)
 
             return await res.json()
 

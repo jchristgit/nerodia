@@ -23,7 +23,7 @@ queue when states change.
 import asyncio
 
 from . import database as db, poller
-from .clients import reddit
+from .clients import reddit, twitch
 from .handlers import handle_message, handle_stream_update
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
@@ -46,9 +46,9 @@ async def reddit_consumer():
             print("[RedditConsumer] Got an Event:", event)
 
             if event[0] == 'on':
-                await handle_stream_update(event[1], is_online=True)
+                await handle_stream_update(event[1].name, is_online=True, stream=event[1])
             elif event[0] == 'off':
-                await handle_stream_update(event[1], is_online=False)
+                await handle_stream_update(event[1], is_online=False, stream=None)
             elif event[0] == 'msg':
                 handle_message(event[1])
             else:
@@ -80,14 +80,18 @@ async def twitch_producer():
         while True:
             follows = db.get_all_follows()
             for stream_name in follows:
-                stream_is_online = await poller.is_online(stream_name)
-                # Compare the Stream state to the last one known, ignore it if it wasn't found.
+                stream = await twitch.get_user_info_by_name(stream_name)
+                stream_is_online = stream is not None
+
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:
-                    await event_queue.put(
-                        ('on' if stream_is_online else 'off', stream_name)
-                    )
+                    if stream_is_online:
+                        await event_queue.put(('on', stream))
+                    else:
+                        await event_queue.put(('off', stream_name))
+
                 stream_states[stream_name] = stream_is_online
                 await asyncio.sleep(1)
+
             await asyncio.sleep(10)
 
     except asyncio.CancelledError:

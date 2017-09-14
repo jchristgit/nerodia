@@ -3,12 +3,13 @@ Provides handlers for the various events
 that are produced by the RedditProducer.
 """
 
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 
 import discord
 import praw
 
 from . import database as db
+from .apis.twitch import TwitchStream
 from .bot import discord_bot
 from .clients import reddit
 from .util import stream_states, token_dict, verify_dict
@@ -50,7 +51,7 @@ def handle_message(msg: praw.models.Message) -> None:
         print(f"Accepted a Moderator invitation to {msg.subreddit}.")
 
 
-async def handle_stream_update(stream_name: str, is_online: bool):
+async def handle_stream_update(stream_name: str, is_online: bool, stream: Optional[TwitchStream]):
     """
     Handles a Stream update.
     Dispatches a sidebar update
@@ -63,18 +64,20 @@ async def handle_stream_update(stream_name: str, is_online: bool):
     Arguments:
         stream_name (str):
             The stream which status changed from offline to online or the other way around.
-        now_online (bool):
+        is_online (bool):
             Whether the given stream is now online. Used for the Discord Guild updater.
+        stream (Optional[TwitchStream]):
+            The TwitchStream class as returned by the API, or `None` if the stream is offline.
     """
 
-    for sub in db.get_subreddits_following(stream_name):
-        notify_sub_update(sub)
+    for sub in db.get_subreddits_following():
+        notify_sub_update(stream_name)
 
     for guild_id in db.get_guilds_following(stream_name):
-        await notify_guild_update(guild_id, stream_name, is_online)
+        await notify_guild_update(guild_id, stream_name, is_online, stream)
 
 
-async def notify_guild_update(guild_id: int, stream: str, stream_online: bool):
+async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, stream):
     """
     Notifies a guild that is following the given
     stream about it going online or offline.
@@ -83,22 +86,39 @@ async def notify_guild_update(guild_id: int, stream: str, stream_online: bool):
         guild_id (int):
             The guild ID on which the stream update announcement channel
             should be looked up and the notice sent out.
-        stream (str):
+        stream_name (str):
             The stream (name) which status has changed.
-        stream_online (bool):
+        is_online (bool):
             Whether the stream is now online or not.
+        stream (Optional[TwitchStream]):
+            The `TwitchStream` instance, when the stream is online.
     """
 
     channel_id = db.get_guild_update_channel(guild_id)
 
-    if channel_id is not None:
+    if channel_id is None:
         channel = discord_bot.get_channel(channel_id)
         if channel is not None:
-            await channel.send(embed=discord.Embed(
-                title=f"Stream update on {stream}",
-                description=f"{stream} is now {'online!' if stream_online else 'offline.'}",
-                colour=discord.Colour.blue()
-            ))
+            if is_online:
+                await channel.send(embed=discord.Embed(
+                    title=f"{stream_name} is now online!",
+                    description=f"Now playing {stream.game} for {stream.viewers} viewers:\n"
+                                f"*{stream.status.strip()}*",
+                    colour=0x6441A4,
+                    url=f"https://twitch.tv/{stream_name}",
+                ).set_image(
+                    url=stream.video_banner
+                ).set_thumbnail(
+                    url=stream.logo
+                ).set_footer(
+                    text=f"Followers: {stream.followers:,} | Viewers: {stream.viewers:,}"
+                ))
+            else:
+                await channel.send(embed=discord.Embed(
+                    title=f"{stream_name} is now offline.",
+                    colour=0x6441A4,
+                    url=f"https://twitch.tv/{stream_name}"
+                ))
         else:
             print(f"Guild {guild_id} has an update channel set, but it could not be found.")
     else:

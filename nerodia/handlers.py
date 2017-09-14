@@ -3,7 +3,7 @@ Provides handlers for the various events
 that are produced by the RedditProducer.
 """
 
-from typing import Iterable, Optional, Union
+from typing import Iterable, Optional
 
 import discord
 import praw

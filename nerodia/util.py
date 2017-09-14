@@ -9,6 +9,9 @@ import random
 import string
 
 
+# The Twitch stream states, as a stream name => stream online mapping.
+stream_states = dict()
+
 # A Discord ID -> verification token mapping.
 token_dict = dict()
 

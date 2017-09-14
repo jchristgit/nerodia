@@ -22,9 +22,10 @@ queue when states change.
 
 import asyncio
 
-from . import database as db, poller
+from . import database as db
 from .clients import reddit, twitch
 from .handlers import handle_message, handle_stream_update
+from .util import stream_states
 
 # Events get returned in tuples indicating what is supposed to be done and data about it.
 # The following events are implemented:
@@ -33,7 +34,6 @@ from .handlers import handle_message, handle_stream_update
 # ('msg', <message_instance>) - sent when a message is received from an authorized user.
 event_queue = asyncio.Queue()
 
-stream_states = dict()
 loop = asyncio.get_event_loop()
 
 

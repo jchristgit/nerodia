@@ -3,7 +3,7 @@ An asynchronous interface to the Twitch API.
 """
 
 import asyncio
-from typing import Optional, NamedTuple, Union
+from typing import Optional, NamedTuple
 
 import aiohttp
 
@@ -22,6 +22,7 @@ class TwitchUser(NamedTuple):
 
 
 class TwitchStream(NamedTuple):
+    name: str
     game: str
     viewers: int
     created_at: str
@@ -84,7 +85,7 @@ class TwitchClient:
             return None
 
         channel = stream['channel']
-        return TwitchStream(game=stream['game'], viewers=stream['viewers'],
-                            created_at=stream['created_at'], status=stream['channel']['status'],
+        return TwitchStream(game=stream['game'], viewers=stream['viewers'], name=channel['name'],
+                            created_at=stream['created_at'], status=channel['status'],
                             logo=channel['logo'], video_banner=channel['video_banner'],
                             followers=channel['followers'], views=channel['views'])

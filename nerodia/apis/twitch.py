@@ -56,9 +56,7 @@ class TwitchClient:
             async with self._cs.get(BASE_URL + route, headers=self._headers) as res:
                 if res.status >= 500:
                     return await self._get_with_backoff(route, backoff * 2 or 0.5)
-                else:
-                    print("backed off successfully, total backoff:", backoff)
-                    return await res.json()
+                return await res.json()
 
         except (ConnectionResetError, aiohttp.client_exceptions.ServerDisconnectedError):
             return await self._get_with_backoff(route, backoff * 2 or 0.5)

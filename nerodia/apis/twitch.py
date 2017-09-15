@@ -77,7 +77,7 @@ class TwitchClient:
                           created_at=user['created_at'], updated_at=user['updated_at'],
                           logo=user['logo'], display_name=user['display_name'])
 
-    async def get_stream_by_user(self, user_id: Union[str, int]):
+    async def get_stream_by_user_id(self, user_id):
         resp = await self._request_get(f'streams/{user_id}')
         stream = resp['stream']
         if stream is None:

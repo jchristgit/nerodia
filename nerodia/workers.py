@@ -80,7 +80,8 @@ async def twitch_producer():
         while True:
             follows = db.get_all_follows()
             for stream_name in follows:
-                stream = await twitch.get_stream_by_user(stream_name)
+                stream_id = await db.get_stream_id(stream_name)
+                stream = await twitch.get_stream_by_user_id(stream_id)
                 stream_is_online = stream is not None
 
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:

@@ -15,8 +15,7 @@ from praw.models import RedditorList
 from prawcore.exceptions import NotFound
 
 from . import models as db
-from . import poller
-from .clients import reddit
+from .clients import reddit, twitch
 
 
 async def get_stream_id(stream_name: str) -> Optional[int]:
@@ -43,7 +42,7 @@ async def get_stream_id(stream_name: str) -> Optional[int]:
         first()
 
     if db_stream is None:
-        user = await poller.get_user_info(stream_name)
+        user = await twitch.get_user_info_by_name(stream_name)
         if user is None:
             return None
         db.session.add(db.Stream(name=user.name, id=user.id))

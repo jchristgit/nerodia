@@ -84,6 +84,8 @@ async def twitch_producer():
                 stream_is_online = stream is not None
 
                 if stream_states.get(stream_name, stream_is_online) != stream_is_online:
+                    print("Status changed:", stream_name)
+                    print("Now online:", stream_is_online)
                     if stream_is_online:
                         await event_queue.put(('on', stream))
                     else:

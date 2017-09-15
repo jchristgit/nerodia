@@ -123,6 +123,7 @@ async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, 
             print(f"Guild {guild_id} has an update channel set, but it could not be found.")
     else:
         print(f"Guild {guild_id} has follows set, but did not set an announcement channel.")
+    print(f"Updated stream {stream_name} on guild with ID {guild_id}.")
 
 
 def notify_sub_update(sub: str):

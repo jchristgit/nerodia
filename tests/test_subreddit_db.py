@@ -13,7 +13,7 @@ import unittest
 from praw.models import RedditorList, Redditor
 
 from nerodia import database as db
-from nerodia.models import session, Subreddit
+from nerodia.models import session, Follow
 
 
 class SubredditDatabaseTestCase(unittest.TestCase):
@@ -23,9 +23,9 @@ class SubredditDatabaseTestCase(unittest.TestCase):
         a stream called "test-stream". It is deleted when done.
         """
 
-        session.add(Subreddit(
-            name="test",
-            follows="test-stream"
+        session.add(Follow(
+            follows="test-stream",
+            sub_name="test"
         ))
 
     def tearDown(self):
@@ -34,9 +34,9 @@ class SubredditDatabaseTestCase(unittest.TestCase):
         following a stream called "test-stream".
         """
 
-        session.query(Subreddit) \
-            .filter(Subreddit.name == "test") \
-            .filter(Subreddit.follows == "test-stream") \
+        session.query(Follow) \
+            .filter(Follow.sub_name == "test") \
+            .filter(Follow.follows == "test-stream") \
             .delete()
 
     def test_subreddit_exists(self):

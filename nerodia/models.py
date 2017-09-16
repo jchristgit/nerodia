@@ -23,9 +23,9 @@ import datetime
 import os
 
 from sqlalchemy import BigInteger, Column, DateTime, Integer, String
-from sqlalchemy import ForeignKey, Table
+from sqlalchemy import ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import backref, sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 
@@ -40,13 +40,6 @@ Base = declarative_base()
 Session = sessionmaker()
 
 
-# pylint: disable=bad-continuation
-ASSOCIATION_TABLE = Table("association", Base.metadata,
-    Column('subreddit_id', Integer, ForeignKey('subreddit.id')),
-    Column('stream_id', Integer, ForeignKey("stream.id"))
-)  # noqa
-
-
 class Stream(Base):
     """
     The Stream table, used to obtain
@@ -57,31 +50,47 @@ class Stream(Base):
     __tablename__ = "stream"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(30))
-    stream_id = Column(Integer)
-    added_on = Column(DateTime, default=datetime.datetime.now())
+    name = Column(String(30), nullable=False)
+    added_on = Column(DateTime, default=datetime.datetime.utcnow())
 
 
-class Subreddit(Base):
+class Follow(Base):
     """
-    The Subreddit table, which
-    is used to associate the
-    streams being followed with
-    the subreddits on which they
-    are being followed.
+    The follow table, which
+    associates either a Discord
+    Guild ID or a subreddit name
+    with a stream name that it
+    is following.
     """
 
-    __tablename__ = "subreddit"
+    __tablename__ = "follow"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(30))
-    follows = Column(String(30), ForeignKey("stream.name"))
-    all_follows = relationship(
-        "Stream",
-        secondary=ASSOCIATION_TABLE,
-        backref=backref('followed_by', lazy='dynamic'),
-        lazy='dynamic'
-    )
+    guild_id = Column(BigInteger)
+    sub_name = Column(String(30))
+    follows = Column(String(30), ForeignKey("stream.name"), nullable=False)
+    followed_on = Column(DateTime, default=datetime.datetime.utcnow())
+
+    def __init__(self, follows: str, *, guild_id: int=None, sub_name: str=None):
+        self.follows = follows
+        self.guild_id = guild_id
+        self.sub_name = sub_name
+
+
+class UpdateChannel(Base):
+    """
+    The UpdateChannel table, which
+    contains the Guild Discord ID
+    and its associated channel ID
+    in which stream updates are
+    posted. This can be set through
+    the Discord Bot interface.
+    """
+
+    __tablename__ = "updatechannel"
+
+    guild_id = Column(BigInteger, nullable=False, unique=True)
+    channel_id = Column(BigInteger, primary_key=True)
 
 
 class DRConnection(Base):
@@ -96,7 +105,7 @@ class DRConnection(Base):
     __tablename__ = "drmapping"
 
     discord_id = Column(BigInteger, primary_key=True)
-    reddit_name = Column(String(30))
+    reddit_name = Column(String(30), nullable=False)
 
 
 engine = create_engine(f"sqlite:///{DB_PATH}")

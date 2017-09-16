@@ -3,7 +3,7 @@ An asynchronous interface to the Twitch API.
 """
 
 import asyncio
-from typing import Optional, NamedTuple, Union
+from typing import Optional, NamedTuple
 
 import aiohttp
 
@@ -22,6 +22,7 @@ class TwitchUser(NamedTuple):
 
 
 class TwitchStream(NamedTuple):
+    name: str
     game: str
     viewers: int
     created_at: str
@@ -50,35 +51,41 @@ class TwitchClient:
         if self._cs is not None:
             self._cs.close()
 
-    async def _request_get(self, route: str, *, attempt=1) -> dict:
+    async def _get_with_backoff(self, route, backoff=0):
+        await asyncio.sleep(backoff)
+        try:
+            async with self._cs.get(BASE_URL + route, headers=self._headers) as res:
+                if res.status >= 500:
+                    return await self._get_with_backoff(route, backoff * 2 or 0.5)
+                return await res.json()
+
+        except (ConnectionResetError, aiohttp.client_exceptions.ServerDisconnectedError):
+            return await self._get_with_backoff(route, backoff * 2 or 0.5)
+
+    async def _request_get(self, route: str) -> dict:
         if self._cs is None:
             await self.init()
 
-        async with self._cs.get(BASE_URL + route, headers=self._headers) as res:
-            if res.status >= 500:
-                await asyncio.sleep(0.5 * attempt)
-                return await self._request_get(route, attempt + 1)
+        return await self._get_with_backoff(route)
 
-            return await res.json()
-
-    async def translate_username_to_id(self, name) -> Optional[TwitchUser]:
+    async def get_user_info_by_name(self, name) -> Optional[TwitchUser]:
         resp = await self._request_get(f'users?login={name}')
         if resp['_total'] == 0:
             return None
 
         user = resp['users'][0]
-        return TwitchUser(name=user['name'], id=user['_id'], bio=user['bio'],
+        return TwitchUser(name=user['name'], id=int(user['_id']), bio=user['bio'],
                           created_at=user['created_at'], updated_at=user['updated_at'],
                           logo=user['logo'], display_name=user['display_name'])
 
-    async def get_stream_by_user(self, user_id: Union[str, int]):
+    async def get_stream_by_user_id(self, user_id):
         resp = await self._request_get(f'streams/{user_id}')
         stream = resp['stream']
         if stream is None:
             return None
 
         channel = stream['channel']
-        return TwitchStream(game=stream['game'], viewers=stream['viewers'],
-                            created_at=stream['created_at'], status=stream['channel']['status'],
+        return TwitchStream(game=stream['game'], viewers=stream['viewers'], name=channel['name'],
+                            created_at=stream['created_at'], status=channel['status'],
                             logo=channel['logo'], video_banner=channel['video_banner'],
                             followers=channel['followers'], views=channel['views'])

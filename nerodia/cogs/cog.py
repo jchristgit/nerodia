@@ -240,12 +240,36 @@ class Nerodia:
                 inline=False
             ))
 
+    @commands.command(name="gdb")
+    @commands.guild_only()
+    async def guild_dashboard(self, ctx):
+        """A dashboard for information about the Guild.
+
+        Shows which streams the guild
+        this is invoked on is following.
+        """
+
+        await ctx.send(embed=discord.Embed(
+            colour=discord.Colour.blue()
+        ).set_author(
+            name=f"Guild Dashboard for {ctx.guild.name}",
+            icon_url=ctx.guild.icon_url
+        ).add_field(
+            name="Followed Streams",
+            value=('• ' + '\n• '.join(db.get_guild_follows(ctx.guild.id))) or "No follows :("
+        ).add_field(
+            name="Stream Update Channel",
+            value=self.bot.get_channel(
+                db.get_guild_update_channel(ctx.guild.id)
+            ).mention or "No update channel set:("
+        ))
+
     @commands.command()
-    async def follow(self, ctx, subreddit_name: str, *stream_names: str):
+    async def sfollow(self, ctx, subreddit_name: str, *stream_names: str):
         """Follows the given stream with the given subreddit name.
         Of course, this only works if you are a moderator on the given subreddit.
         Also supports passing a list of stream names, for example:
-            `follow imaqtpie bardmains discordapp`
+            `n!sfollow imaqtpie bardmains discordapp`
         Only stream names for streams that exist will be followed.
         The streams where the bot could not validate will be shown
         in the bot's response, so you can check if you made any mistakes.
@@ -273,11 +297,11 @@ class Nerodia:
                       f"My reddit name is **`{BOT_REDDIT_NAME}`**."
             ))
 
-        valid_streams = (s for s in stream_names if await db.stream_exists(s))
+        valid_streams = [s for s in stream_names if await db.stream_exists(s)]
         present_follows = db.get_subreddit_follows(subreddit_name)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 
-        db.follow(subreddit_name, *unique_streams)
+        db.subreddit_follow(subreddit_name, *unique_streams)
         await ctx.send(embed=discord.Embed(
             title="Follow command",
             colour=discord.Colour.blue(),
@@ -291,14 +315,47 @@ class Nerodia:
         ))
 
     @commands.command()
-    async def unfollow(self, ctx, subreddit_name: str, *stream_names: str):
+    @commands.has_permissions(manage_channels=True)
+    @commands.guild_only()
+    async def gfollow(self, ctx, *stream_names: str):
+        """Follows the given streams on the current Guild.
+
+        You can pass in a list of stream names that should
+        be followed, for example:
+            `n!gfollow discordapp imaqtpie`
+
+        This command requires you to have the
+        manage channels permission.
+        """
+
+        await ctx.trigger_typing()
+
+        valid_streams = [s for s in stream_names if await db.stream_exists(s)]
+        present_follows = db.get_guild_follows(ctx.guild.id)
+        unique_streams = set(s for s in valid_streams if s not in present_follows)
+
+        db.guild_follow(ctx.guild.id, *unique_streams)
+        await ctx.send(embed=discord.Embed(
+            title="Follow command",
+            colour=discord.Colour.blue(),
+            timestamp=datetime.datetime.now()
+        ).add_field(
+            name="Newly followed:",
+            value='• ' + '\n• '.join(unique_streams)
+        ).add_field(
+            name="Failed to follow:",
+            value='• ' + '\n• '.join(s for s in stream_names if s not in unique_streams)
+        ))
+
+    @commands.command()
+    async def sunfollow(self, ctx, subreddit_name: str, *stream_names: str):
         """Unfollows the given streams on the given Subreddit.
         Of course, you must
         be a Moderator on the Subreddit to
         use this command. Like the follow
         command, this support passing a list
         of stream names, for example:
-            `unfollow imaqtpie discordapp`
+            `n!sunfollow imaqtpie discordapp`
         Unfollowing a stream means that the
         bot will no longer update the given
         subreddit's sidebar when the stream
@@ -318,7 +375,7 @@ class Nerodia:
         unique_streams = set(stream_names)
         old_follows = db.get_subreddit_follows(subreddit_name)
         unfollowed = [s for s in unique_streams if s in old_follows]
-        db.unfollow(subreddit_name, *unique_streams)
+        db.subreddit_unfollow(subreddit_name, *unique_streams)
 
         await ctx.send(embed=discord.Embed(
             title="Unfollow complete",
@@ -329,6 +386,67 @@ class Nerodia:
         ).add_field(
             name="Failed to unfollow",
             value='• ' + '\n •'.join(s for s in unique_streams if s not in unfollowed)
+        ))
+
+    @commands.command()
+    @commands.has_permissions(manage_channels=True)
+    @commands.guild_only()
+    async def gunfollow(self, ctx, *stream_names: str):
+        """Unfollows the given list of streams on the current Guild.
+
+        You can pass in either a single stream,
+        or multiple streams, simply separated by
+        a space, for example:
+            `n!gunfollow imaqtpie discordapp`
+
+        This command requires the manage channels permission.
+        """
+
+        await ctx.trigger_typing()
+
+        unique_streams = set(stream_names)
+        old_follows = db.get_guild_follows(ctx.guild.id)
+        unfollowed = [s for s in unique_streams if s in old_follows]
+        db.guild_unfollow(ctx.guild.id, *unique_streams)
+
+        await ctx.send(embed=discord.Embed(
+            title="Unfollow complete",
+            colour=discord.Colour.blue()
+        ).add_field(
+            name="Unfollowed Streams",
+            value='• ' + '\n •'.join(unfollowed)
+        ).add_field(
+            name="Failed to unfollow",
+            value='• ' + '\n •'.join(s for s in unique_streams if s not in unfollowed)
+        ))
+
+    @commands.command()
+    @commands.has_permissions(manage_channels=True)
+    @commands.guild_only()
+    async def setchannel(self, ctx):
+        """Sets the stream update announcement channel.
+
+        This will result in all stream updates for the
+        current guild to be posted in the channel
+        in which the command was invoked.
+
+        Not setting any channel in which the streams
+        updates should be announced will result in
+        all follows being removed for the guild.
+
+        This has nothing to do with the
+        subreddit-specific follows, configurable
+        through `n!sfollow` and `n!sunfollow`.
+        """
+
+        await ctx.trigger_typing()
+        if db.get_guild_update_channel(ctx.guild.id) is not None:
+            db.unset_guild_update_channel(ctx.guild.id)
+        db.set_guild_update_channel(ctx.guild.id, ctx.message.channel.id)
+
+        await ctx.send(embed=discord.Embed(
+            title="Set the stream update announcement channel to this channel.",
+            colour=discord.Colour.green()
         ))
 
 

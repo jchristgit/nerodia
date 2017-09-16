@@ -5,9 +5,12 @@ that are produced by the RedditProducer.
 
 from typing import Iterable, Optional
 
+import discord
 import praw
 
 from . import database as db
+from .apis.twitch import TwitchStream
+from .bot import discord_bot
 from .clients import reddit
 from .util import stream_states, token_dict, verify_dict
 
@@ -48,28 +51,85 @@ def handle_message(msg: praw.models.Message) -> None:
         print(f"Accepted a Moderator invitation to {msg.subreddit}.")
 
 
-def handle_stream_update(stream_name: str):
+async def handle_stream_update(stream_name: str, is_online: bool, stream: Optional[TwitchStream]):
     """
     Handles a Stream update.
     Dispatches a sidebar update
     event for every Subreddit
     that is following the stream
-    at the time the update occurs.
+    at the time the update occurs,
+    as well as every discord Guild
+    that is doing so.
 
     Arguments:
         stream_name (str):
             The stream which status changed from offline to online or the other way around.
+        is_online (bool):
+            Whether the given stream is now online. Used for the Discord Guild updater.
+        stream (Optional[TwitchStream]):
+            The TwitchStream class as returned by the API, or `None` if the stream is offline.
     """
 
-    following_subreddits = db.get_subreddits_following(stream_name)
-    print("stream status update on", stream_name)
-    print("Following:", following_subreddits)
+    for sub in db.get_subreddits_following(stream_name):
+        notify_sub_update(stream_name)
 
-    for sub in following_subreddits:
-        notify_update(sub)
+    for guild_id in db.get_guilds_following(stream_name):
+        await notify_guild_update(guild_id, stream_name, is_online, stream)
 
 
-def notify_update(sub: str):
+async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, stream):
+    """
+    Notifies a guild that is following the given
+    stream about it going online or offline.
+
+    Arguments:
+        guild_id (int):
+            The guild ID on which the stream update announcement channel
+            should be looked up and the notice sent out.
+        stream_name (str):
+            The stream (name) which status has changed.
+        is_online (bool):
+            Whether the stream is now online or not.
+        stream (Optional[TwitchStream]):
+            The `TwitchStream` instance, when the stream is online.
+    """
+
+    channel_id = db.get_guild_update_channel(guild_id)
+
+    if channel_id is None:
+        return print(f"Guild {guild_id} has follows set, but did not set an announcement channel.")
+
+    channel = discord_bot.get_channel(channel_id)
+    if channel is None:
+        return print(f"Guild {guild_id} has an update channel set, but it could not be found.")
+
+    if is_online:
+        game = stream.game or "an unknown game"
+        embed = discord.Embed(
+            title=f"{stream_name} is now online!",
+            description=f"Now playing {game} for {stream.viewers} viewers:\n"
+                        f"*{stream.status.strip()}*",
+            colour=0x6441A4,
+            url=f"https://twitch.tv/{stream_name}"
+        )
+
+        if stream.logo:
+            embed.set_thumbnail(url=stream.logo)
+        if stream.video_banner:
+            embed.set_image(url=stream.video_banner)
+
+        embed.set_footer(text=f"Followers: {stream.followers:,} | Views: {stream.views:,}")
+
+        await channel.send(embed=embed)
+    else:
+        await channel.send(embed=discord.Embed(
+            title=f"{stream_name} is now offline.",
+            colour=0x6441A4,
+            url=f"https://twitch.tv/{stream_name}"
+        ))
+
+
+def notify_sub_update(sub: str):
     """
     Notifies the given Subreddit about an
     update on any Stream.

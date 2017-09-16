@@ -14,7 +14,7 @@ import unittest
 from nerodia import models as db
 
 
-ONE_MINUTE_AGO = datetime.datetime.now() - datetime.timedelta(minutes=1)
+ONE_MINUTE_AGO = datetime.datetime.utcnow() - datetime.timedelta(minutes=1)
 
 
 class StreamModelTestCase(unittest.TestCase):
@@ -56,7 +56,6 @@ class StreamModelTestCase(unittest.TestCase):
 
         self.assertIsInstance(self.test_stream.name, str)
         self.assertIsInstance(self.test_stream.id, int)
-        self.assertIsInstance(self.test_stream.followed_by.all(), list)
         self.assertIsInstance(self.test_stream.added_on, datetime.datetime)
 
     def test_column_values(self):
@@ -68,7 +67,6 @@ class StreamModelTestCase(unittest.TestCase):
 
         self.assertEqual(self.test_stream.name, "test-stream")
         self.assertEqual(self.test_stream.id, 1337)
-        self.assertListEqual(self.test_stream.followed_by.all(), [])
         self.assertGreater(self.test_stream.added_on, ONE_MINUTE_AGO)
         self.assertLess(self.test_stream.added_on, datetime.datetime.now())
 
@@ -83,21 +81,11 @@ class StreamModelTestCase(unittest.TestCase):
 
 class SubredditModelTestCase(unittest.TestCase):
     """
-    Tests the Subreddit database model,
-    which contains the name of a Subreddit
-    along with a single stream that the
-    Subreddit is following, resulting in
-    a one-to-many relationship: one sub-
-    reddit can follow many streams,
-    which typically results in tables like
-          name   |   follows
-        ---------+-------------
-        some-sub | first-stream
-        some-sub | second-stream
-        some-sub | third-stream
-    The ID attribute is ommitted as it is
-    generated automatically and not of
-    interest in queries run.
+    Tests the proper function of
+    subreddit follows in the Follow
+    table. This does not test
+    anything related to discord Guilds
+    following Twitch streams.
     """
 
     def setUp(self):
@@ -110,9 +98,9 @@ class SubredditModelTestCase(unittest.TestCase):
         cleaned up in the `tearDown` method.
         """
 
-        new_sub = db.Subreddit(name="test-sub", follows="test-stream")
+        new_sub = db.Follow("test-stream", sub_name="test-sub")
         db.session.add(new_sub)
-        self.query = db.session.query(db.Subreddit)
+        self.query = db.session.query(db.Follow)
         self.test_sub = self.query.first()
 
     def tearDown(self):
@@ -133,9 +121,8 @@ class SubredditModelTestCase(unittest.TestCase):
         """
 
         self.assertIsInstance(self.test_sub.id, int)
-        self.assertIsInstance(self.test_sub.name, str)
+        self.assertIsInstance(self.test_sub.sub_name, str)
         self.assertIsInstance(self.test_sub.follows, str)
-        self.assertIsInstance(self.test_sub.all_follows.all(), list)
 
     def test_column_values(self):
         """
@@ -144,11 +131,10 @@ class SubredditModelTestCase(unittest.TestCase):
         as set up in the `setUp` method.
         """
 
-        self.assertEqual(self.test_sub.name, "test-sub")
+        self.assertEqual(self.test_sub.sub_name, "test-sub")
         self.assertEqual(self.test_sub.follows, "test-stream")
-        self.assertListEqual(self.test_sub.all_follows.all(), [])
 
-        self.assertEqual(len(db.session.query(db.Subreddit).all()), 1)
+        self.assertEqual(len(db.session.query(db.Follow).all()), 1)
 
 
 class DRConnectionModelTestCase(unittest.TestCase):

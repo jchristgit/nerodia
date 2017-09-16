@@ -14,6 +14,7 @@ is never run (e.g. in tests).
 import json
 
 import praw
+
 from .apis.twitch import TwitchClient
 
 

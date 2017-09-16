@@ -7,10 +7,9 @@ locks for different variables.
 
 import random
 import string
-import threading
 
 
-# Stores information about the stream status (online / offline) of all streams known.
+# The Twitch stream states, as a stream name => stream online mapping.
 stream_states = dict()
 
 # A Discord ID -> verification token mapping.

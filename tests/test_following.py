@@ -17,7 +17,7 @@ being put onto an unrelated sidebar.
 import unittest
 
 from nerodia import database as db
-from nerodia.models import session, Subreddit
+from nerodia.models import session, Follow
 
 
 class TwoFollowsOneSubredditTestCase(unittest.TestCase):
@@ -34,19 +34,14 @@ class TwoFollowsOneSubredditTestCase(unittest.TestCase):
         """
         Adds two rows to the Subreddit table,
         looking somewhat like the following
-        (ID column omitted)
-              name   |   follows
-            ---------+--------------
-            test-sub | test-stream
-            test-sub | test-stream-2
         This is cleaned up again in `tearDown`,
         given that the `unfollow` method
         functions properly (further test runs
         would have more than two rows if this
-        would happen, although unlikely)
+        would happen, although unlikely).
         """
 
-        db.follow("test-sub", "test-stream", "test-stream-2")
+        db.subreddit_follow("test-sub", "test-stream", "test-stream-2")
 
     def tearDown(self):
         """
@@ -55,7 +50,7 @@ class TwoFollowsOneSubredditTestCase(unittest.TestCase):
         along with the two streams it followed.
         """
 
-        db.unfollow("test-sub", "test-stream", "test-stream-2")
+        db.subreddit_unfollow("test-sub", "test-stream", "test-stream-2")
 
     def test_sub_follows_streams(self):
         """
@@ -67,7 +62,7 @@ class TwoFollowsOneSubredditTestCase(unittest.TestCase):
         self.assertListEqual(
             db.get_subreddit_follows("test-sub"), ["test-stream", "test-stream-2"]
         )
-        self.assertEqual(len(session.query(Subreddit).all()), 2)
+        self.assertEqual(len(session.query(Follow).all()), 2)
 
     def test_unknown_sub_no_follows(self):
         """
@@ -80,9 +75,8 @@ class TwoFollowsOneSubredditTestCase(unittest.TestCase):
     def test_all_follows(self):
         """
         Validates that obtaining all follows
-        returns a Generator, resulting in a list
-        of the two followed streams "test-stream"
-        and "test-stream-2"
+        returns a list of the two followed
+        streams "test-stream" and "test-stream-2".
         """
 
         self.assertListEqual(
@@ -173,3 +167,89 @@ class EmptyFollowsTestCase(unittest.TestCase):
         self.assertListEqual(
             db.get_subreddits_following(""), []
         )
+
+
+class SubredditAndGuildTwoUniqueFollowsTestCase(unittest.TestCase):
+    """
+    A test case which validates that the
+    follow-related functions correctly
+    return unique results when a Discord
+    Guild and a Subreddit follow a total
+    of three streams, where they share
+    the same follow, namely `test-stream-2`.
+    """
+
+    def setUp(self):
+        """
+        Sets up a total of three follows:
+        - The Subreddit `test-sub` follows
+          the streams `test-stream` and
+          `test-stream-2`.
+        - The Guild `test-guild` follows
+          the stream `test-stream-2`.
+        """
+
+        db.subreddit_follow("test-sub", "test-stream", "test-stream-2")
+        db.guild_follow(1337, "test-stream-2")
+
+    def tearDown(self):
+        """
+        Removes the previously created
+        follows from the Subreddit
+        `test-sub` and the guild `test-guild`.
+        """
+
+        db.subreddit_unfollow("test-sub", "test-stream", "test-stream-2")
+        db.guild_unfollow(1337, "test-stream-2")
+
+    def test_get_all_follows(self):
+        """
+        Validates that `get_all_follows`
+        properly returns a list of a
+        total of 2 unique elements,
+        namely `test-stream` and
+        `test-stream-2`.
+
+        Since the updater task should only
+        poll unique entries, this is vital
+        in order to not spam the API with
+        unnecessary requests, since the
+        handlers for the stream update
+        dispatch the stream update event
+        to a handler for editing the sidebar
+        on the following Subreddits as
+        well as a handler for sending the
+        update to the Discord guild's
+        stream announcement channel.
+        """
+
+        all_follows = db.get_all_follows()
+
+        self.assertEqual(len(all_follows), 2)
+        self.assertListEqual(all_follows, ["test-stream", "test-stream-2"])
+
+    def test_get_guild_follows(self):
+        """
+        Validates that the `get_guild_follows`
+        function is not influenced by the
+        added streams to the subreddit, and
+        returns a single element as expected.
+        """
+
+        guild_follows = db.get_guild_follows(1337)
+
+        self.assertEqual(len(guild_follows), 1)
+        self.assertListEqual(guild_follows, ["test-stream-2"])
+
+    def test_get_subreddit_follows(self):
+        """
+        Validates that the `get_subreddit_follows`
+        function is not influenced by the
+        added streams to the Discord Guild, and
+        returns two elements as expected.
+        """
+
+        sub_follows = db.get_subreddit_follows("test-sub")
+
+        self.assertEqual(len(sub_follows), 2)
+        self.assertListEqual(sub_follows, ["test-stream", "test-stream-2"])

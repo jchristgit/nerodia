@@ -59,6 +59,9 @@ async def reddit_consumer():
     except asyncio.CancelledError:
         print("[RedditConsumer] Cancelled.")
 
+    except Exception as e:
+        print("Error in RedditConsumer:\n", e)
+
 
 async def reddit_producer():
     print("[RedditProducer] Ready.")
@@ -97,3 +100,6 @@ async def twitch_producer():
 
     except asyncio.CancelledError:
         print("[TwitchProducer] Cancelled.")
+
+    except Exception as e:
+        print("Error in TwitchProducer:\n", e)

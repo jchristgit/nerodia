@@ -96,7 +96,7 @@ async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, 
 
     channel_id = db.get_guild_update_channel(guild_id)
 
-    if channel_id is None:
+    if channel_id is not None:
         channel = discord_bot.get_channel(channel_id)
         if channel is not None:
             if is_online:
@@ -123,7 +123,6 @@ async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, 
             print(f"Guild {guild_id} has an update channel set, but it could not be found.")
     else:
         print(f"Guild {guild_id} has follows set, but did not set an announcement channel.")
-    print(f"Updated stream {stream_name} on guild with ID {guild_id}.")
 
 
 def notify_sub_update(sub: str):

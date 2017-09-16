@@ -107,7 +107,7 @@ async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, 
         game = stream.game or "an unknown game"
         embed = discord.Embed(
             title=f"{stream_name} is now online!",
-            description=f"Now playing {game} for {stream.viewers} viewers:\n"
+            description=f"**Now playing {game}**:\n\n"
                         f"*{stream.status.strip()}*",
             colour=0x6441A4,
             url=f"https://twitch.tv/{stream_name}"

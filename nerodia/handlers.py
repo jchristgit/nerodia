@@ -104,9 +104,10 @@ async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, 
         return print(f"Guild {guild_id} has an update channel set, but it could not be found.")
 
     if is_online:
+        game = stream.game or "an unknown game"
         embed = discord.Embed(
             title=f"{stream_name} is now online!",
-            description=f"Now playing {stream.game} for {stream.viewers} viewers:\n"
+            description=f"Now playing {game} for {stream.viewers} viewers:\n"
                         f"*{stream.status.strip()}*",
             colour=0x6441A4,
             url=f"https://twitch.tv/{stream_name}"
@@ -117,7 +118,7 @@ async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, 
         if stream.video_banner:
             embed.set_image(url=stream.video_banner)
 
-        embed.set_footer(text=f"Followers: {stream.followers:,} | Viewers: {stream.viewers:,}")
+        embed.set_footer(text=f"Followers: {stream.followers:,} | Views: {stream.views:,}")
 
         await channel.send(embed=embed)
     else:

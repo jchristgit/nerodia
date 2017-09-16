@@ -41,9 +41,7 @@ async def reddit_consumer():
     print("[RedditConsumer] Ready.")
     try:
         while True:
-            print("[RedditConsumer] Waiting for Events.")
             event = await event_queue.get()
-            print("[RedditConsumer] Got an Event:", event)
 
             if event[0] == 'on':
                 await handle_stream_update(event[1].name, is_online=True, stream=event[1])
@@ -58,9 +56,6 @@ async def reddit_consumer():
 
     except asyncio.CancelledError:
         print("[RedditConsumer] Cancelled.")
-
-    except Exception as e:
-        print("Error in RedditConsumer:\n", e)
 
 
 async def reddit_producer():
@@ -100,6 +95,3 @@ async def twitch_producer():
 
     except asyncio.CancelledError:
         print("[TwitchProducer] Cancelled.")
-
-    except Exception as e:
-        print("Error in TwitchProducer:\n", e)

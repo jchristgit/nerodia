@@ -396,7 +396,6 @@ def set_guild_update_channel(guild_id: int, channel_id: int):
             stream update announcements should be posted.
     """
 
-    print("guild set channel!")
     db.session.add(db.UpdateChannel(
         guild_id=guild_id, channel_id=channel_id)
     )

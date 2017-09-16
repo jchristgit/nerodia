@@ -116,7 +116,8 @@ async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, 
             embed.set_thumbnail(url=stream.logo)
         if stream.video_banner:
             embed.set_image(url=stream.video_banner)
-            embed.set_footer(text=f"Followers: {stream.followers:,} | Viewers: {stream.viewers:,}")
+
+        embed.set_footer(text=f"Followers: {stream.followers:,} | Viewers: {stream.viewers:,}")
 
         await channel.send(embed=embed)
     else:

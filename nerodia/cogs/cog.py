@@ -257,6 +257,11 @@ class Nerodia:
         ).add_field(
             name="Followed Streams",
             value=('• ' + '\n• '.join(db.get_guild_follows(ctx.guild.id))) or "No follows :("
+        ).add_field(
+            name="Stream Update Channel",
+            value=self.bot.get_channel(
+                db.get_guild_update_channel(ctx.guild.id)
+            ).mention or "No update channel set:("
         ))
 
     @commands.command()

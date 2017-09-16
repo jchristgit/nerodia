@@ -96,33 +96,35 @@ async def notify_guild_update(guild_id: int, stream_name: str, is_online: bool, 
 
     channel_id = db.get_guild_update_channel(guild_id)
 
-    if channel_id is not None:
-        channel = discord_bot.get_channel(channel_id)
-        if channel is not None:
-            if is_online:
-                await channel.send(embed=discord.Embed(
-                    title=f"{stream_name} is now online!",
-                    description=f"Now playing {stream.game} for {stream.viewers} viewers:\n"
-                                f"*{stream.status.strip()}*",
-                    colour=0x6441A4,
-                    url=f"https://twitch.tv/{stream_name}",
-                ).set_image(
-                    url=stream.video_banner
-                ).set_thumbnail(
-                    url=stream.logo
-                ).set_footer(
-                    text=f"Followers: {stream.followers:,} | Viewers: {stream.viewers:,}"
-                ))
-            else:
-                await channel.send(embed=discord.Embed(
-                    title=f"{stream_name} is now offline.",
-                    colour=0x6441A4,
-                    url=f"https://twitch.tv/{stream_name}"
-                ))
-        else:
-            print(f"Guild {guild_id} has an update channel set, but it could not be found.")
+    if channel_id is None:
+        return print(f"Guild {guild_id} has follows set, but did not set an announcement channel.")
+
+    channel = discord_bot.get_channel(channel_id)
+    if channel is None:
+        return print(f"Guild {guild_id} has an update channel set, but it could not be found.")
+
+    if is_online:
+        embed = discord.Embed(
+            title=f"{stream_name} is now online!",
+            description=f"Now playing {stream.game} for {stream.viewers} viewers:\n"
+                        f"*{stream.status.strip()}*",
+            colour=0x6441A4,
+            url=f"https://twitch.tv/{stream_name}"
+        )
+
+        if stream.logo:
+            embed.set_thumbnail(url=stream.logo)
+        if stream.video_banner:
+            embed.set_image(url=stream.video_banner)
+            embed.set_footer(text=f"Followers: {stream.followers:,} | Viewers: {stream.viewers:,}")
+
+        await channel.send(embed=embed)
     else:
-        print(f"Guild {guild_id} has follows set, but did not set an announcement channel.")
+        await channel.send(embed=discord.Embed(
+            title=f"{stream_name} is now offline.",
+            colour=0x6441A4,
+            url=f"https://twitch.tv/{stream_name}"
+        ))
 
 
 def notify_sub_update(sub: str):

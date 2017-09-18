@@ -80,9 +80,9 @@ class TwitchClient:
 
     async def get_stream_by_user_id(self, user_id):
         resp = await self._request_get(f'streams/{user_id}')
-        stream = resp['stream']
-        if stream is None:
+        if not resp or resp['stream'] is None:
             return None
+        stream = resp['stream']
 
         channel = stream['channel']
         return TwitchStream(game=stream['game'], viewers=stream['viewers'], name=channel['name'],

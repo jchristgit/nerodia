@@ -59,7 +59,9 @@ class TwitchClient:
                     return await self._get_with_backoff(route, backoff * 2 or 0.5)
                 return await res.json()
 
-        except (ConnectionResetError, aiohttp.client_exceptions.ServerDisconnectedError):
+        except (ConnectionResetError,
+                aiohttp.client_exceptions.ServerDisconnectedError,
+                aiohttp.client_exceptions.ClientOSError):
             return await self._get_with_backoff(route, backoff * 2 or 0.5)
 
     async def _request_get(self, route: str) -> dict:

@@ -198,11 +198,16 @@ def remove_old_stream_list(sidebar: str) -> str:
     as_list = sidebar.splitlines()
     updated = as_list.copy()
     previous_line = ""
+    found_header = False
 
     for line in as_list:
+        if line == "# Streams":
+            found_header = True
         if previous_line == "# Streams" or previous_line.startswith(">"):
-            if line.startswith(">"):
+            if line.startswith(">") and found_header:
                 updated.remove(line)
+        if found_header and not line:
+            break
         previous_line = line
 
     return '\n'.join(updated)

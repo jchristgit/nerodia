@@ -71,7 +71,7 @@ async def handle_stream_update(stream_name: str, is_online: bool, stream: Option
     """
 
     for sub in db.get_subreddits_following(stream_name):
-        notify_sub_update(stream_name)
+        notify_sub_update(sub)
 
     for guild_id in db.get_guilds_following(stream_name):
         await notify_guild_update(guild_id, stream_name, is_online, stream)

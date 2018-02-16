@@ -12,8 +12,10 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
 from . import util
-from . import guilds as guild_db
-from . import reddit as sub_db
+from .database import (
+    guilds as guild_db,
+    subreddits as sub_db
+)
 from .clients import reddit, twitch
 from .constants import (
     # Error Embeds
@@ -26,7 +28,6 @@ from .constants import (
     # Reddit constants
     BOT_REDDIT_NAME, PM_URL
 )
-from .models import session
 
 
 def create_instructions(token: str) -> discord.Embed:
@@ -302,12 +303,12 @@ class Nerodia:
 
         valid_streams = [
             s for s in stream_names
-            if (await twitch.get_user(s))['data']
+            if await twitch.get_user(s) is not None
         ]
         present_follows = sub_db.get_follows(subreddit_name)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 
-        sub_db.follow(subreddit_name, *unique_streams)
+        await sub_db.follow(subreddit_name, *unique_streams)
         await ctx.send(embed=discord.Embed(
             title="Follow command",
             colour=discord.Colour.blue(),
@@ -338,12 +339,12 @@ class Nerodia:
 
         valid_streams = [
             s for s in stream_names
-            if (await twitch.get_user(s))['data']
+            if await twitch.get_user(s) is not None
         ]
         present_follows = guild_db.get_follows(ctx.guild.id)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 
-        guild_db.follow(ctx.guild.id, *unique_streams)
+        await guild_db.follow(ctx.guild.id, *unique_streams)
         await ctx.send(embed=discord.Embed(
             title="Follow command",
             colour=discord.Colour.blue(),
@@ -384,7 +385,7 @@ class Nerodia:
         unique_streams = set(stream_names)
         old_follows = sub_db.get_follows(subreddit_name)
         unfollowed = [s for s in unique_streams if s in old_follows]
-        sub_db.unfollow(subreddit_name, *unique_streams)
+        await sub_db.unfollow(subreddit_name, *unique_streams)
 
         await ctx.send(embed=discord.Embed(
             title="Unfollow complete",
@@ -416,7 +417,7 @@ class Nerodia:
         unique_streams = set(stream_names)
         old_follows = guild_db.get_follows(ctx.guild.id)
         unfollowed = [s for s in unique_streams if s in old_follows]
-        guild_db.unfollow(ctx.guild.id, *unique_streams)
+        await guild_db.unfollow(ctx.guild.id, *unique_streams)
 
         await ctx.send(embed=discord.Embed(
             title="Unfollow complete",

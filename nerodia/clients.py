@@ -11,21 +11,11 @@ cleanup is done when the bot
 is never run (e.g. in tests).
 """
 
-import json
-
 import praw
 
-from .apis.twitch import TwitchClient
+from .config import DISCORD_CFG, REDDIT_CFG, TWITCH_CFG
+from .twitch import TwitchClient
 
-
-with open("config.json") as f:
-    as_json = json.load(f)
-    DISCORD_CFG = as_json["discord"]
-    REDDIT_CFG = as_json["reddit_auth"]
-    TWITCH_CFG = as_json["twitch"]
-
-discord_token = DISCORD_CFG["token"]
-discord_game = DISCORD_CFG["game"]
 
 reddit = praw.Reddit(
     client_id=REDDIT_CFG["client_id"],

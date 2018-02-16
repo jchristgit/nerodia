@@ -11,7 +11,10 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
-from .clients import twitch
+from . import util
+from . import guilds as guild_db
+from . import reddit as sub_db
+from .clients import reddit, twitch
 from .constants import (
     # Error Embeds
     ALREADY_CONNECTED_EMBED, BOT_NOT_MODERATOR_EMBED, DM_ONLY_EMBED, NO_CONNECTION_EMBED,
@@ -23,8 +26,7 @@ from .constants import (
     # Reddit constants
     BOT_REDDIT_NAME, PM_URL
 )
-from . import database as db
-from . import util
+from .models import session
 
 
 def create_instructions(token: str) -> discord.Embed:
@@ -139,7 +141,7 @@ class Nerodia:
 
         await ctx.trigger_typing()
 
-        if db.get_reddit_name(ctx.message.author.id) is not None:
+        if sub_db.get_reddit_name(ctx.message.author.id) is not None:
             return await ctx.send(embed=ALREADY_CONNECTED_EMBED)
         elif not isinstance(ctx.message.channel, discord.abc.PrivateChannel):
             return await ctx.send(embed=DM_ONLY_EMBED)
@@ -171,7 +173,7 @@ class Nerodia:
 
         await ctx.trigger_typing()
 
-        if db.get_reddit_name(ctx.message.author.id) is None:
+        if sub_db.get_reddit_name(ctx.message.author.id) is None:
             return await ctx.send(embed=discord.Embed(
                 title="Failed to disconnect:",
                 description="You do not have an account connected.",
@@ -200,11 +202,11 @@ class Nerodia:
 
         await ctx.trigger_typing()
 
-        reddit_name = db.get_reddit_name(ctx.message.author.id)
+        reddit_name = sub_db.get_reddit_name(ctx.message.author.id)
         if reddit_name is None:
             await ctx.send(embed=NO_CONNECTION_EMBED)
         elif subreddit_name is not None:
-            if db.subreddit_exists(subreddit_name):
+            if sub_db.exists(subreddit_name):
                 await ctx.send(embed=discord.Embed(
                     colour=discord.Colour.blue()
                 ).set_author(
@@ -213,16 +215,16 @@ class Nerodia:
                 ).add_field(
                     name="Subreddit Moderators",
                     value='• ' + '\n• '.join(
-                        r.name for r in db.get_subreddit_moderators(subreddit_name)
+                        r.name for r in reddit.subreddit(subreddit_name).moderator()
                     )
                 ).add_field(
                     name="Followed Streams",
-                    value='• ' + '\n• '.join(db.get_subreddit_follows(subreddit_name))
+                    value='• ' + '\n• '.join(sub_db.get_follows(subreddit_name))
                 ))
             else:
                 await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
         else:
-            modded_sub_list = '\n• '.join(db.get_moderated_subreddits(reddit_name))
+            modded_sub_list = '\n• '.join(sub_db.get_modded_subs(reddit_name))
             if modded_sub_list:
                 moderated_subs = "• " + modded_sub_list
             else:
@@ -256,11 +258,11 @@ class Nerodia:
             icon_url=ctx.guild.icon_url
         ).add_field(
             name="Followed Streams",
-            value=('• ' + '\n• '.join(db.get_guild_follows(ctx.guild.id))) or "No follows :("
+            value=('• ' + '\n• '.join(guild_db.get_follows(ctx.guild.id))) or "No follows :("
         ).add_field(
             name="Stream Update Channel",
             value=self.bot.get_channel(
-                db.get_guild_update_channel(ctx.guild.id)
+                guild_db.get_update_channel(ctx.guild.id)
             ).mention or "No update channel set:("
         ))
 
@@ -281,13 +283,14 @@ class Nerodia:
 
         await ctx.trigger_typing()
 
-        reddit_name = db.get_reddit_name(ctx.message.author.id)
-        sub_moderators = db.get_subreddit_moderators(subreddit_name)
+        reddit_name = sub_db.get_reddit_name(ctx.message.author.id)
         if reddit_name is None:
             return await ctx.send(embed=NO_CONNECTION_EMBED)
-        elif not db.subreddit_exists(subreddit_name):
+        elif not sub_db.exists(subreddit_name):
             return await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
-        elif reddit_name not in sub_moderators:
+
+        sub_moderators = reddit.subreddit(subreddit_name).moderator()
+        if reddit_name not in sub_moderators:
             return await ctx.send(embed=USER_NOT_MODERATOR_EMBED)
         elif BOT_REDDIT_NAME not in sub_moderators:
             return await ctx.send(embed=BOT_NOT_MODERATOR_EMBED.add_field(
@@ -299,12 +302,12 @@ class Nerodia:
 
         valid_streams = [
             s for s in stream_names
-            if await twitch.get_user(s) is not None
+            if (await twitch.get_user(s))['data']
         ]
-        present_follows = db.get_subreddit_follows(subreddit_name)
+        present_follows = sub_db.get_follows(subreddit_name)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 
-        db.subreddit_follow(subreddit_name, *unique_streams)
+        sub_db.follow(subreddit_name, *unique_streams)
         await ctx.send(embed=discord.Embed(
             title="Follow command",
             colour=discord.Colour.blue(),
@@ -335,12 +338,12 @@ class Nerodia:
 
         valid_streams = [
             s for s in stream_names
-            if await twitch.get_user(s) is not None
+            if (await twitch.get_user(s))['data']
         ]
-        present_follows = db.get_guild_follows(ctx.guild.id)
+        present_follows = guild_db.get_follows(ctx.guild.id)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 
-        db.guild_follow(ctx.guild.id, *unique_streams)
+        guild_db.follow(ctx.guild.id, *unique_streams)
         await ctx.send(embed=discord.Embed(
             title="Follow command",
             colour=discord.Colour.blue(),
@@ -370,18 +373,18 @@ class Nerodia:
 
         await ctx.trigger_typing()
 
-        reddit_name = db.get_reddit_name(ctx.message.author.id)
+        reddit_name = sub_db.get_reddit_name(ctx.message.author.id)
         if reddit_name is None:
             return await ctx.send(embed=NO_CONNECTION_EMBED)
-        elif not db.subreddit_exists(subreddit_name):
+        elif not sub_db.exists(subreddit_name):
             return await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
-        elif reddit_name not in db.get_subreddit_moderators(subreddit_name):
+        elif reddit_name not in reddit.subreddit(subreddit_name).moderator():
             return await ctx.send(embed=USER_NOT_MODERATOR_EMBED)
 
         unique_streams = set(stream_names)
-        old_follows = db.get_subreddit_follows(subreddit_name)
+        old_follows = sub_db.get_follows(subreddit_name)
         unfollowed = [s for s in unique_streams if s in old_follows]
-        db.subreddit_unfollow(subreddit_name, *unique_streams)
+        sub_db.unfollow(subreddit_name, *unique_streams)
 
         await ctx.send(embed=discord.Embed(
             title="Unfollow complete",
@@ -411,9 +414,9 @@ class Nerodia:
         await ctx.trigger_typing()
 
         unique_streams = set(stream_names)
-        old_follows = db.get_guild_follows(ctx.guild.id)
+        old_follows = guild_db.get_follows(ctx.guild.id)
         unfollowed = [s for s in unique_streams if s in old_follows]
-        db.guild_unfollow(ctx.guild.id, *unique_streams)
+        guild_db.unfollow(ctx.guild.id, *unique_streams)
 
         await ctx.send(embed=discord.Embed(
             title="Unfollow complete",
@@ -446,9 +449,9 @@ class Nerodia:
         """
 
         await ctx.trigger_typing()
-        if db.get_guild_update_channel(ctx.guild.id) is not None:
-            db.unset_guild_update_channel(ctx.guild.id)
-        db.set_guild_update_channel(ctx.guild.id, ctx.message.channel.id)
+        if guild_db.get_update_channel(ctx.guild.id) is not None:
+            guild_db.unset_update_channel(ctx.guild.id)
+        guild_db.set_update_channel(ctx.guild.id, ctx.message.channel.id)
 
         await ctx.send(embed=discord.Embed(
             title="Set the stream update announcement channel to this channel.",

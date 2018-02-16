@@ -11,6 +11,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
+from .clients import twitch
 from .constants import (
     # Error Embeds
     ALREADY_CONNECTED_EMBED, BOT_NOT_MODERATOR_EMBED, DM_ONLY_EMBED, NO_CONNECTION_EMBED,
@@ -296,7 +297,10 @@ class Nerodia:
                       f"My reddit name is **`{BOT_REDDIT_NAME}`**."
             ))
 
-        valid_streams = [s for s in stream_names if await db.stream_exists(s)]
+        valid_streams = [
+            s for s in stream_names
+            if await twitch.get_user(s) is not None
+        ]
         present_follows = db.get_subreddit_follows(subreddit_name)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 
@@ -329,7 +333,10 @@ class Nerodia:
 
         await ctx.trigger_typing()
 
-        valid_streams = [s for s in stream_names if await db.stream_exists(s)]
+        valid_streams = [
+            s for s in stream_names
+            if await twitch.get_user(s) is not None
+        ]
         present_follows = db.get_guild_follows(ctx.guild.id)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 

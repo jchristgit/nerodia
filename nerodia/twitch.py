@@ -5,6 +5,7 @@ from .clients import TWITCH_CFG
 
 
 BASE_URL = 'https://api.twitch.tv/helix'
+USER_ENDPOINT = BASE_URL + '/users'
 STREAM_TOPIC = BASE_URL + '/streams'
 WEBHOOK_ENDPOINT = BASE_URL + '/webhooks/hub'
 
@@ -20,6 +21,10 @@ class TwitchClient:
     def __del__(self):
         if self._cs is not None:
             self._cs.close()
+
+    async def _get(self, url, **kwargs):
+        async with self._cs.get(url, **kwargs) as resp:
+            return await resp.json()
 
     async def _post(self, url, **kwargs):
         async with self._cs.post(url, **kwargs) as resp:
@@ -44,4 +49,10 @@ class TwitchClient:
         return await self._update_event_subscription(
             f'{STREAM_TOPIC}?user_id={user_id}',
             sub=False
+        )
+
+    async def get_user(self, user_name: str):
+        return await self._get(
+            USER_ENDPOINT,
+            params={'login': user_name}
         )

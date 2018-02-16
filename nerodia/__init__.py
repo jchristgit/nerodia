@@ -22,11 +22,13 @@ else:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 from . import (
+    database,
     bot, cog, clients, database, handlers,
-    models, reddit, twitch, util, workers
+    util, workers
 )
 
 __all__ = [
+    "database",
     "bot", "cog", "clients", "database", "handlers",
-    "models", "reddit", "twitch", "util", "workers"
+    "util", "workers"
 ]

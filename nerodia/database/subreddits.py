@@ -10,7 +10,8 @@ from typing import Generator, Optional, List
 from prawcore.exceptions import NotFound
 
 from . import models as db
-from .clients import reddit
+from .common import follow_if_new, unfollow_if_unused
+from ..clients import reddit, twitch
 
 
 def get_reddit_name(discord_id: int) -> Optional[str]:
@@ -104,7 +105,7 @@ def get_modded_subs(reddit_name: str) -> Generator[str, None, None]:
     )
 
 
-def follow(subreddit_name: str, *stream_names: str):
+async def follow(subreddit_name: str, *stream_names: str):
     """
     Follows the given argument list of streams
     with the given subreddit.
@@ -116,13 +117,14 @@ def follow(subreddit_name: str, *stream_names: str):
             An argument list of stream names that should be followed.
     """
 
+    await follow_if_new(*stream_names)
     db.session.add_all(
         db.Follow(stream, sub_name=subreddit_name) for stream in stream_names
     )
     db.session.commit()
 
 
-def unfollow(subreddit_name: str, *stream_names: str):
+async def unfollow(subreddit_name: str, *stream_names: str):
     """
     Unfollows the given argument list of streams
     with the given subreddit.
@@ -140,3 +142,4 @@ def unfollow(subreddit_name: str, *stream_names: str):
         .filter(db.Follow.follows.in_(stream_names)) \
         .delete(synchronize_session='fetch')
     db.session.commit()
+    await unfollow_if_unused(*stream_names)

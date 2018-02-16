@@ -20,38 +20,21 @@ database file location.
 # pylint: disable=too-few-public-methods, invalid-name
 
 import datetime
+import pathlib
 import os
 
 from sqlalchemy import BigInteger, Column, DateTime, Integer, String
-from sqlalchemy import ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 
-NERODIA_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.abspath(os.path.join(NERODIA_DIR, os.pardir))
-DEFAULT_DB_PATH = os.path.join(
-    PARENT_DIR, "data", "nerodia.db"
-)
+CWD = pathlib.Path.cwd()
+DEFAULT_DB_PATH = CWD / "data" / "nerodia.db"
 DB_PATH = os.environ.get("NERODIA_DB_PATH", DEFAULT_DB_PATH)
 
 Base = declarative_base()
 Session = sessionmaker()
-
-
-class Stream(Base):
-    """
-    The Stream table, used to obtain
-    the ID for the given Twitch stream
-    without making an API call.
-    """
-
-    __tablename__ = "stream"
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(30), nullable=False)
-    added_on = Column(DateTime, default=datetime.datetime.utcnow())
 
 
 class Follow(Base):
@@ -68,7 +51,7 @@ class Follow(Base):
     id = Column(Integer, primary_key=True)
     guild_id = Column(BigInteger)
     sub_name = Column(String(30))
-    follows = Column(String(30), ForeignKey("stream.name"), nullable=False)
+    follows = Column(String(30), nullable=False)
     followed_on = Column(DateTime, default=datetime.datetime.utcnow())
 
     def __init__(self, follows: str, *, guild_id: int=None, sub_name: str=None):

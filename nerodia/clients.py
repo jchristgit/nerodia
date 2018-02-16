@@ -22,7 +22,7 @@ with open("config.json") as f:
     as_json = json.load(f)
     DISCORD_CFG = as_json["discord"]
     REDDIT_AUTH = as_json["reddit_auth"]
-    TWITCH_AUTH = as_json["twitch_auth"]
+    TWITCH_AUTH = as_json["twitch"]
 
 discord_token = DISCORD_CFG["token"]
 discord_game = DISCORD_CFG["game"]

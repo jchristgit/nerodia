@@ -24,7 +24,6 @@ from .constants import (
 )
 from . import database as db
 from . import util
-from .util import remove_token, token_dict, verify_dict
 
 
 def create_instructions(token: str) -> discord.Embed:
@@ -102,10 +101,10 @@ async def wait_for_add(user_id: str) -> Optional[str]:
     while timeout_ctr > 0:
         await asyncio.sleep(5)
         timeout_ctr -= 5
-        user = verify_dict.get(user_id)
+        user = util.verify_dict.get(user_id)
 
         if user is not None:
-            del verify_dict[user_id]
+            del util.verify_dict[user_id]
             return user
 
     return None
@@ -148,10 +147,10 @@ class Nerodia:
         await ctx.send(embed=create_instructions(token))
 
         author_id = str(ctx.message.author.id)
-        token_dict[author_id] = token
+        util.token_dict[author_id] = token
 
         reddit_name = await wait_for_add(author_id)
-        del token_dict[author_id]
+        del util.token_dict[author_id]
 
         if reddit_name is None:
             await ctx.send(embed=NO_PM_IN_TIME_EMBED)

@@ -18,26 +18,20 @@ exit their while polling loop.
 import asyncio
 
 from .bot import discord_bot
-from .clients import discord_token, twitch
-from .workers import reddit_consumer, reddit_producer, twitch_producer
+from .config import DISCORD_CFG
+from .clients import twitch
+from .workers import inbox_poller
 
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
 
-    rc = loop.create_task(reddit_consumer())
-    rp = loop.create_task(reddit_producer())
-    tp = loop.create_task(twitch_producer())
+    poller = loop.create_task(inbox_poller())
 
     try:
-        loop.run_until_complete(discord_bot.start(discord_token))
+        loop.run_until_complete(discord_bot.start(DISCORD_CFG['token']))
     except KeyboardInterrupt:
-        tp.cancel()
-        twitch.close()
-
-        rp.cancel()
-        rc.cancel()
-
+        poller.cancel()
         loop.run_until_complete(discord_bot.logout())
     finally:
         loop.close()

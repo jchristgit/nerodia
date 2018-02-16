@@ -8,8 +8,8 @@ bot for easier configuration.
 import discord
 from discord.ext import commands
 
-from . import cogs
-from .clients import discord_game
+from . import cog
+from .config import DISCORD_CFG
 
 
 DESCRIPTION = (
@@ -26,17 +26,17 @@ DESCRIPTION = (
 
 class NerodiaDiscordBot(commands.AutoShardedBot):
     """
-    The base class for the discord Bot.
+    The base class for the Discord Bot.
     """
 
-    def __init__(self, game: str):
+    def __init__(self):
         super().__init__(
             command_prefix=commands.when_mentioned_or("n!"),
             description=DESCRIPTION,
             pm_help=True,
-            game=discord.Game(name=game)
+            game=discord.Game(name=DISCORD_CFG['game'])
         )
-        cogs.setup(self)
+        cog.setup(self)
 
     async def on_ready(self):
         """
@@ -50,4 +50,4 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
               f"https://discordapp.com/oauth2/authorize?&client_id={self.user.id}&scope=bot")
 
 
-discord_bot = NerodiaDiscordBot(discord_game)
+discord_bot = NerodiaDiscordBot()

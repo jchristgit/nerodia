@@ -117,7 +117,7 @@ class SidebarTemplate(Base):
 
     __tablename__ = "sidebartemplate"
 
-    subreddit = Column(String(30), nullable=False, index=True)
+    subreddit = Column(String(30), primary_key=True)
     template = Column(String(10_240), nullable=False)
 
 

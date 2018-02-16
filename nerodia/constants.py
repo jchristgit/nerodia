@@ -10,7 +10,7 @@ various other issues.
 
 import discord
 
-from ..clients import reddit
+from .clients import reddit
 
 BOT_REDDIT_NAME = reddit.user.me()
 

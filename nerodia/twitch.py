@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
-import json
+
+from .config import TWITCH_CFG
 
 
 BASE_URL = 'https://api.twitch.tv/helix'
@@ -51,9 +52,8 @@ class TwitchClient:
         )
 
     async def get_user(self, user_name: str):
-        x = await self._get(
+        res = await self._get(
             USER_ENDPOINT,
             params={'login': user_name}
         )
-        print(x)
-        return x
+        return res['data'][0] if res['data'] else None

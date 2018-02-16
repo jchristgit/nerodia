@@ -108,6 +108,19 @@ class DRConnection(Base):
     reddit_name = Column(String(30), nullable=False)
 
 
+class SidebarTemplate(Base):
+    """
+    Contains the Subreddit sidebar template
+    which will be used for updating it with
+    a list of online streams.
+    """
+
+    __tablename__ = "sidebartemplate"
+
+    subreddit = Column(String(30), nullable=False, index=True)
+    template = Column(String(10_240), nullable=False)
+
+
 engine = create_engine(f"sqlite:///{DB_PATH}")
 Base.metadata.create_all(engine)
 Session.configure(bind=engine)

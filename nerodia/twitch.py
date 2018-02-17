@@ -28,7 +28,7 @@ class TwitchClient:
 
     async def _post(self, url, **kwargs):
         async with self._cs.post(url, **kwargs) as resp:
-            return await resp.json()
+            return resp.status
 
     async def _update_event_subscription(self, hub_topic, sub=True, **kwargs):
         return await self._post(

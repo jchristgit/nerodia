@@ -5,7 +5,7 @@ mainly embeds that are sent when
 various errors occur, for example
 with the discord <=> reddit
 connection authentication, or
-various other issues.
+for various other issues.
 """
 
 import discord

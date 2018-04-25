@@ -1,5 +1,7 @@
 """
 The entry point for Nerodia.
+Starts the `inbox_poller` task,
+and afterwards, the Discord bot.
 """
 
 
@@ -7,7 +9,6 @@ import asyncio
 
 from .bot import discord_bot
 from .config import DISCORD_CFG
-from .clients import twitch
 from .workers import inbox_poller
 
 

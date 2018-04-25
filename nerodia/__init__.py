@@ -1,16 +1,3 @@
-"""
-Imports various modules from
-this package so that relative
-imports work properly.
-
-Additionally, sets the asyncio
-event loop policy to the one
-from the `uvloop` package, which
-is a lot faster than the standard
-asyncio implementation, and will
-(hopefully) speed up our app.
-"""
-
 # flake8: noqa
 
 try:
@@ -23,12 +10,12 @@ else:
 
 from . import (
     database,
-    bot, cog, clients, database, handlers,
+    bot, cog, clients, handlers,
     util, workers
 )
 
 __all__ = [
     "database",
-    "bot", "cog", "clients", "database", "handlers",
+    "bot", "cog", "clients", "handlers",
     "util", "workers"
 ]

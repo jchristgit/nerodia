@@ -1,6 +1,9 @@
 """
-Provides handlers for the various events
-that are produced by the RedditProducer.
+Provides handlers for events,
+for example responding to
+reddit messages,  verifying
+a user, or updating a Discord
+server about a stream update.
 """
 
 import praw

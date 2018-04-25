@@ -102,6 +102,5 @@ class SidebarTemplate(Base):
 
 
 engine = create_engine(f"sqlite:///{DB_PATH}")
-Base.metadata.create_all(engine)
 Session.configure(bind=engine)
 session = Session()

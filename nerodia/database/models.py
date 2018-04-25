@@ -17,13 +17,11 @@ variable named NERODIA_DB_PATH with
 the full path towards the desired
 database file location.
 """
-# pylint: disable=too-few-public-methods, invalid-name
 
-import datetime
 import pathlib
 import os
 
-from sqlalchemy import BigInteger, Column, DateTime, Integer, String
+from sqlalchemy import BigInteger, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -52,9 +50,8 @@ class Follow(Base):
     guild_id = Column(BigInteger)
     sub_name = Column(String(30))
     follows = Column(String(30), nullable=False)
-    followed_on = Column(DateTime, default=datetime.datetime.utcnow())
 
-    def __init__(self, follows: str, *, guild_id: int=None, sub_name: str=None):
+    def __init__(self, follows: str, *, guild_id: int = None, sub_name: str = None):
         self.follows = follows
         self.guild_id = guild_id
         self.sub_name = sub_name
@@ -72,7 +69,7 @@ class UpdateChannel(Base):
 
     __tablename__ = "updatechannel"
 
-    guild_id = Column(BigInteger, nullable=False, unique=True)
+    guild_id = Column(BigInteger, primary_key=True)
     channel_id = Column(BigInteger, primary_key=True)
 
 
@@ -88,7 +85,7 @@ class DRConnection(Base):
     __tablename__ = "drmapping"
 
     discord_id = Column(BigInteger, primary_key=True)
-    reddit_name = Column(String(30), nullable=False)
+    reddit_name = Column(String(30), primary_key=True)
 
 
 class SidebarTemplate(Base):

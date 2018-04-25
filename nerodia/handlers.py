@@ -70,8 +70,8 @@ async def handle_stream_update(stream_name: str, is_online: bool, stream: Option
             The TwitchStream class as returned by the API, or `None` if the stream is offline.
     """
 
-    for sub in db.get_subreddits_following(stream_name):
-        notify_sub_update(sub)
+    # for sub in db.get_subreddits_following(stream_name):
+    #     notify_sub_update(sub)
 
     for guild_id in db.get_guilds_following(stream_name):
         await notify_guild_update(guild_id, stream_name, is_online, stream)

@@ -12,59 +12,12 @@ from typing import Optional
 import praw
 from discord.ext import commands
 
+from .consumers.discordbot.embeds import create_stream_online_embed
 from .database import guilds as guild_db
-from consumers.discordbot.embeds import create_stream_online_embed
 from .twitch import TwitchStream
-from .util import token_dict, verify_dict
 
 
 log = logging.getLogger(__name__)
-
-
-def verify(msg: praw.models.Message):
-    """Handles a verification message received on reddit.
-
-    This is used to connect a user's Discord account and
-    their reddit account together to prove that the Discord
-    user is a moderator on subreddits they want to modify.
-
-    Args:
-        msg (praw.models.Message):
-            The original message.
-    """
-
-    for key, val in token_dict.items():
-        if msg.body == val:
-            discord_id = key
-            break
-    else:
-        discord_id = None
-
-    if discord_id is not None:
-        verify_dict[discord_id] = msg.author.name
-        msg.reply("You have connected your accounts successfully!")
-    else:
-        msg.reply(f"> {msg.body}\n\nFailed to connect accounts: Unknown token.")
-
-
-def handle_message(msg: praw.models.Message):
-    """Handle a new message received on reddit.
-
-    Args:
-        msg (praw.models.Message):
-            The message that was received.
-    """
-
-    log.debug(
-        f"Got new message from {(msg.author or msg.subreddit).name!r}, "
-        f"contents: {msg.body!r}."
-    )
-
-    if msg.subject == "verification":
-        verify(msg)
-    elif msg.body.startswith("**gadzooks!"):
-        msg.subreddit.mod.accept_invite()
-        log.info(f"Accepted a Moderator invitation to {msg.subreddit.name}.")
 
 
 async def handle_stream_update(

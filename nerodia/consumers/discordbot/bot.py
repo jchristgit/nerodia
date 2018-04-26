@@ -5,7 +5,6 @@ from discord.ext import commands
 
 from . import cog
 from nerodia.config import DISCORD_CFG
-from nerodia.workers import inbox_poller, stream_poller
 
 
 DESCRIPTION = (
@@ -16,25 +15,10 @@ log = logging.getLogger(__name__)
 
 
 class NerodiaDiscordBot(commands.AutoShardedBot):
-    """The Discord bot that nerodia runs on.
-
-    This is a custom subclass of `commands.AutoShardedBot`
-    that is not any different, except that it starts the
-    tasks that nerodia uses to update stream statuses and more.
-
-    Attributes:
-        inbox_poller (asyncio.Task):
-            The background task polling the reddit inbox.
-        stream_poller (asyncio.Task):
-            The background task polling Twitch stream statuses.
-    """
+    """The Discord bot that nerodia runs on."""
 
     def __init__(self):
-        """Instantiate the Discord bot.
-
-        This sets up the `asyncio.Task`s for background
-        updating, and attaches command groups to the bot.
-        """
+        """Instantiate the Discord bot."""
 
         super().__init__(
             command_prefix=commands.when_mentioned_or("n!"),
@@ -43,9 +27,7 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
             game=discord.Game(name=DISCORD_CFG["game"]),
         )
         cog.setup(self)
-        self.inbox_poller = self.loop.create_task(inbox_poller(self))
-        self.stream_poller = self.loop.create_task(stream_poller(self))
-        log.info("Started all tasks.")
+        log.info("Created Discord Bot.")
 
     async def on_ready(self):
         total_members = sum(1 for _ in self.get_all_members())
@@ -54,6 +36,3 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
     async def close(self):
         await super().close()
         log.info("Logged out Discord Bot.")
-
-        self.inbox_poller.cancel()
-        self.stream_poller.cancel()

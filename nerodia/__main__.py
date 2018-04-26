@@ -12,7 +12,7 @@ from .config import DISCORD_CFG
 
 
 logging.basicConfig(
-    format="%(asctime)s | %(name)18s | %(funcName)15s | %(levelname)8s | %(message)s",
+    format="%(asctime)s | %(name)30s | %(funcName)15s | %(levelname)8s | %(message)s",
     datefmt="%d.%m.%y %H:%M:%S",
     level=logging.INFO,
 )

@@ -1,3 +1,3 @@
-from . import database, bot, cog, clients, handlers, util, workers
+from . import consumers, database, clients, handlers, pollers
 
-__all__ = ["database", "bot", "cog", "clients", "handlers", "util", "workers"]
+__all__ = ["clients", "consumers", "database", "handlers", "pollers.py"]

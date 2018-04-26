@@ -23,7 +23,8 @@ def _method_cache_key_generator(*args, **kwargs) -> int:
 
     if kwargs:
         log.warning(
-            f"Got keyword arguments {kwargs!r}, but this key generator only supports regular arguments."
+            f"Got keyword arguments {kwargs!r}, but this key "
+            "generator only supports regular arguments."
         )
 
     return hash(args[1:])

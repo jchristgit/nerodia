@@ -30,7 +30,7 @@ class TwitchStream(NamedTuple):
         """
 
         def build_thumbnail_url(url: str) -> str:
-            return url.replace('{width}', '1600').replace('{height}', '900')
+            return url.replace("{width}", "1600").replace("{height}", "900")
 
         return cls(
             id=int(data["id"]),

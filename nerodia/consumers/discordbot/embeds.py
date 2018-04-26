@@ -4,7 +4,9 @@ from nerodia.clients import twitch as twitch_client
 from nerodia.twitch import TwitchStream
 
 
-async def create_stream_online_embed(user_name: str, stream: TwitchStream) -> discord.Embed:
+async def create_stream_online_embed(
+    user_name: str, stream: TwitchStream
+) -> discord.Embed:
     """Formats stream information for an online stream into an Embed.
 
     Args:

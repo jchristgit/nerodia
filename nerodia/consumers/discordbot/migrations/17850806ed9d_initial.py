@@ -1,7 +1,7 @@
 """initial
 
 Revision ID: 17850806ed9d
-Revises: 
+Revises:
 Create Date: 2018-04-26 22:58:43.127593
 
 """
@@ -10,9 +10,9 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '17850806ed9d'
+revision = "17850806ed9d"
 down_revision = None
-branch_labels = ('discordbot',)
+branch_labels = ("discordbot",)
 depends_on = None
 
 

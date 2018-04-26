@@ -9,7 +9,6 @@ server about a stream update.
 import logging
 from typing import Optional
 
-import praw
 from discord.ext import commands
 
 from .consumers.discordbot.embeds import create_stream_online_embed

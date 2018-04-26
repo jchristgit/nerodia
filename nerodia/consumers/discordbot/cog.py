@@ -3,30 +3,25 @@ Contains the command group
 used for the Discord Bot.
 """
 
-import asyncio
 import datetime
 import logging
-import secrets
-from typing import Optional
 
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 
-from .checks import dm_only
 from nerodia.clients import twitch
 from nerodia.database import guilds as guild_db
-from nerodia.database.models import DRConnection, session as db_session
 
 
 log = logging.getLogger(__name__)
 
 
 class NerodiaDiscordCog:
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="dashboard", aliases=['db'])
+    @commands.command(name="dashboard", aliases=["db"])
     @commands.guild_only()
     async def guild_dashboard(self, ctx):
         """A dashboard for information about the Guild.

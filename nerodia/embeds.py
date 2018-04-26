@@ -1,11 +1,10 @@
-from .twitch import TwitchClient, TwitchStream
+from .clients import twitch as twitch_client
+from .twitch import TwitchStream
 
 from discord import Embed
 
 
-async def create_stream_online_embed(
-    user_name: str, stream: TwitchStream, twitch_client: TwitchClient
-) -> Embed:
+async def create_stream_online_embed(user_name: str, stream: TwitchStream) -> Embed:
     """Formats stream information for an online stream into an Embed.
 
     Args:

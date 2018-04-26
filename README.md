@@ -32,6 +32,8 @@ After you installed the requirements, you can perform an additional configuratio
 and change the environment variable `NERODIA_DB_PATH` to where ever you want the SQLite
 database to house. This defaults to `./data/nerodia.db`.
 
+The last step is migrating your database. You can do so by running `alembic upgrade head`.
+
 
 ### Disclaimer
 Nerodia isn't endorsed by Discord, Reddit or Twitch and does not

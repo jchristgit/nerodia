@@ -6,19 +6,17 @@ and the followed Twitch streams for updates.
 import asyncio
 import logging
 import traceback
+from typing import List
 
-from discord.ext import commands
-
+from .base import Consumer
 from .clients import twitch
-from .database.common import get_all_follows
-from .handlers import handle_stream_update
+from .consumers.discordbot.database.common import get_all_follows
 
 
 log = logging.getLogger(__name__)
 
 
-async def _stream_poller(bot: commands.Bot):
-    await bot.wait_until_ready()
+async def _stream_poller(consumers: List[Consumer]):
     log.info("Started Twitch stream poller.")
 
     old_data = {}
@@ -31,22 +29,26 @@ async def _stream_poller(bot: commands.Bot):
 
             if old_data.get(username, stream) != stream:
                 is_online = stream is not None
-                await handle_stream_update(bot, username, is_online, stream)
+                for consumer in consumers:
+                    if is_online:
+                        await consumer.stream_online(stream)
+                    else:
+                        await consumer.stream_offline(stream)
 
         await asyncio.sleep(10)
         old_data.update(stream_information)
 
 
-async def stream_poller(bot: commands.Bot):
+async def stream_poller(consumers: List[Consumer]):
     """Polls followed streams for any updates.
 
     Args:
-        bot (commands.Bot):
-            The main bot instance.
+        consumers (List[Consumer]):
+            A list of set up consumers.
     """
 
     try:
-        await _stream_poller(bot)
+        await _stream_poller(consumers)
     except asyncio.CancelledError:
         log.info("Twitch stream poller was cancelled.")
     except Exception as e:

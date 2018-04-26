@@ -9,10 +9,11 @@ import importlib
 import logging
 
 from .config import CONFIG
+from .pollers import stream_poller
 
 
 logging.basicConfig(
-    format="%(asctime)s | %(name)35s | %(funcName)15s | %(levelname)8s | %(message)s",
+    format="%(asctime)s | %(name)38s | %(funcName)15s | %(levelname)8s | %(message)s",
     datefmt="%d.%m.%y %H:%M:%S",
     level=logging.INFO,
 )
@@ -42,8 +43,9 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
     loop.run_until_complete(initialize_consumers(loop))
+    # Do we need to `wait_until_ready`?
     try:
-        loop.run_forever()
+        loop.run_until_complete(stream_poller(consumers))
     except KeyboardInterrupt:
         log.info("Got SIGINT. Shutting down...")
     loop.run_until_complete(cleanup_consumers())

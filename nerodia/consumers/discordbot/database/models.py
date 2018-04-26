@@ -1,13 +1,4 @@
 """
-Database file. Contains the table
-classes and relationships for
-the Subreddit as well as the Stream
-tables. Each subreddit can follow
-0 - n streams, and each stream can
-be followed by 0 - n subreddits, thus
-resulting in a many - to - many
-relationship between the two tables.
-
 By default, the database file is
 created under the filename "nerodia.db"
 in the directory in which the application
@@ -44,7 +35,7 @@ class Follow(Base):
     is following.
     """
 
-    __tablename__ = "follow"
+    __tablename__ = "discordbot_follow"
 
     id = Column(Integer, primary_key=True)
     guild_id = Column(BigInteger)
@@ -67,38 +58,10 @@ class UpdateChannel(Base):
     the Discord Bot interface.
     """
 
-    __tablename__ = "updatechannel"
+    __tablename__ = "discordbot_updatechannel"
 
     guild_id = Column(BigInteger, primary_key=True)
     channel_id = Column(BigInteger, primary_key=True)
-
-
-class DRConnection(Base):
-    """
-    The Discord ID <-> Reddit table.
-    Contains Discord IDs associated
-    with a reddit name. Discord users
-    agree to this in the
-    "connectreddit" command.
-    """
-
-    __tablename__ = "drmapping"
-
-    discord_id = Column(BigInteger, primary_key=True)
-    reddit_name = Column(String(30), primary_key=True)
-
-
-class SidebarTemplate(Base):
-    """
-    Contains the Subreddit sidebar template
-    which will be used for updating it with
-    a list of online streams.
-    """
-
-    __tablename__ = "sidebartemplate"
-
-    subreddit = Column(String(30), primary_key=True)
-    template = Column(String(10_240), nullable=False)
 
 
 engine = create_engine(f"sqlite:///{DB_PATH}")

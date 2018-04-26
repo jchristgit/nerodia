@@ -17,32 +17,8 @@ depends_on = None
 
 
 def upgrade():
-    op.create_table(
-        "follow",
-        sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("guild_id", sa.BigInteger),
-        sa.Column("sub_name", sa.String(30)),
-        sa.Column("follows", sa.String(30), nullable=False),
-    )
-    op.create_table(
-        "updatechannel",
-        sa.Column("guild_id", sa.BigInteger, primary_key=True),
-        sa.Column("channel_id", sa.BigInteger, primary_key=True),
-    )
-    op.create_table(
-        "drmapping",
-        sa.Column("discord_id", sa.BigInteger, primary_key=True),
-        sa.Column("reddit_name", sa.String(30), primary_key=True),
-    )
-    op.create_table(
-        "sidebartemplate",
-        sa.Column("subreddit", sa.String(30), primary_key=True),
-        sa.Column("template", sa.String(10_240), nullable=False),
-    )
+    pass
 
 
 def downgrade():
-    op.drop_table("follow")
-    op.drop_table("updatechannel")
-    op.drop_table("drmapping")
-    op.drop_table("sidebartemplate")
+    pass

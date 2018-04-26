@@ -13,10 +13,8 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
-from . import util
-from .clients import reddit, twitch
 from .checks import dm_only
-from .constants import (
+from .embeds import (
     # Error Embeds
     ALREADY_CONNECTED_EMBED,
     BOT_NOT_MODERATOR_EMBED,
@@ -31,8 +29,10 @@ from .constants import (
     BOT_REDDIT_NAME,
     PM_URL,
 )
-from .database import guilds as guild_db, subreddits as sub_db
-from .database.models import DRConnection, session as db_session
+from nerodia import util
+from nerodia.clients import reddit, twitch
+from database import guilds as guild_db, subreddits as sub_db
+from database.models import DRConnection, session as db_session
 
 
 log = logging.getLogger(__name__)

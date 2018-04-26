@@ -13,7 +13,7 @@ import praw
 from discord.ext import commands
 
 from .database import guilds as guild_db
-from .embeds import create_stream_online_embed
+from consumers.discordbot.embeds import create_stream_online_embed
 from .twitch import TwitchStream
 from .util import token_dict, verify_dict
 

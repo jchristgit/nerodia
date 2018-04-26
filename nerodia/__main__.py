@@ -7,7 +7,7 @@ Configures logging and starts the bot.
 import asyncio
 import logging
 
-from .bot import discord_bot
+from .consumers.discordbot import NerodiaDiscordBot
 from .config import DISCORD_CFG
 
 
@@ -24,6 +24,6 @@ logging.getLogger("discord").setLevel(logging.ERROR)
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
-    discord_bot.run(DISCORD_CFG["token"])
+    NerodiaDiscordBot().run(DISCORD_CFG["token"])
     log.info("Got SIGINT. Shutting down...")
     loop.close()

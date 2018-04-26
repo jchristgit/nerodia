@@ -4,8 +4,8 @@ import discord
 from discord.ext import commands
 
 from . import cog
-from .config import DISCORD_CFG
-from .workers import inbox_poller, stream_poller
+from nerodia.config import DISCORD_CFG
+from nerodia.workers import inbox_poller, stream_poller
 
 
 DESCRIPTION = (
@@ -57,6 +57,3 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
 
         self.inbox_poller.cancel()
         self.stream_poller.cancel()
-
-
-discord_bot = NerodiaDiscordBot()

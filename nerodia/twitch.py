@@ -1,14 +1,30 @@
 import asyncio
 import aiohttp
 from collections import namedtuple
-from typing import Dict, Optional, List, Union
+from typing import Dict, Optional, List, NamedTuple, Union
 
 
 BASE_URL = 'https://api.twitch.tv/helix'
 USER_ENDPOINT = BASE_URL + '/users'
 STREAM_ENDPOINT = BASE_URL + '/streams'
 
-TwitchStream = namedtuple('TwitchStream', 'id user_id thumbnail_url title viewer_count')
+
+class TwitchStream(NamedTuple):
+    id: int
+    user_id: int
+    thumbnail_url: str
+    title: str
+    viewer_count: int
+
+    @classmethod
+    def from_data(cls, data):
+        return cls(
+            id=data['id'], user_id=data['user_id'],
+            thumbnail_url=data['thumbnail_url'], title=data['title'],
+            viewer_count=data['viewer_count']
+        )
+
+
 TwitchUser = namedtuple('TwitchUser', 'id name profile_image_url offline_image_url')
 
 
@@ -102,7 +118,7 @@ class TwitchClient:
             res = await self._get(
                 STREAM_ENDPOINT + '?user_id=' + params
             )
-            streams = res['data']
+            streams = map(TwitchStream.from_data, res['data'])
             for user in users:
                 result[user.name] = next(
                     (stream for stream in streams if stream.user_id == user.id),

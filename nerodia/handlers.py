@@ -104,5 +104,5 @@ async def handle_stream_update(
                     "but it could not be found."
                 )
             elif now_online:
-                embed = create_stream_online_embed(stream_name, stream)
+                embed = await create_stream_online_embed(stream_name, stream)
                 await channel.send(embed=embed)

@@ -12,8 +12,6 @@ async def create_stream_online_embed(user_name: str, stream: TwitchStream) -> Em
             The username associated with the stream.
         stream (TwitchStream):
             The stream for which the Embed should be created.
-        twitch_client (TwitchClient):
-            An instance of the asynchronous Twitch client.
 
     Returns:
         discord.Embed:

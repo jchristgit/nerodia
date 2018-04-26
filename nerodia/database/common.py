@@ -4,7 +4,8 @@ as functions for both the Discord
 and the Reddit interface.
 """
 
-from ..clients import twitch
+from typing import List
+
 from .models import session, Follow
 
 
@@ -26,3 +27,14 @@ def is_followed(stream_name: str) -> bool:
         .filter(Follow.follows == stream_name) \
         .first()
     return res is not None
+
+
+def get_all_follows() -> List[str]:
+    """Gets all follows present in the `Follow` database.
+
+    Returns:
+        List[str]:
+            A list of Twitch names of followed streams.
+    """
+
+    return [row[0] for row in session.query(Follow.follows).distinct().all()]

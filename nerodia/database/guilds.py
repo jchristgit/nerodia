@@ -27,6 +27,24 @@ def get_follows(guild_id: int) -> List[str]:
     return [s for row_tuple in result for s in row_tuple]
 
 
+def get_guilds_following(stream_name: str) -> List[int]:
+    """Get a list of guild IDs following the given channel.
+
+    Arguments:
+        stream_name (str):
+            The stream name which following guild IDs should be returned.
+
+    Returns:
+        List[int]:
+            A list of guilds that are following the given stream.
+    """
+
+    return db.session.query(db.Follow) \
+        .filter(db.Follow.follows == stream_name) \
+        .filter(db.Follow.guild_id) \
+        .values(db.Follow.guild_id)
+
+
 async def follow(guild_id: int, *stream_names: str):
     """
     Follows the given argument list of streams

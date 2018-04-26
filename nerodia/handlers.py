@@ -12,7 +12,6 @@ from typing import Optional
 import praw
 from discord.ext import commands
 
-from .bot import discord_bot
 from .database import guilds as guild_db
 from .twitch import TwitchStream
 from .util import token_dict, verify_dict
@@ -76,7 +75,7 @@ async def handle_stream_update(
                 "but has no update channel set.",
             )
         else:
-            channel = await discord_bot.get_channel(update_channel_id)
+            channel = await bot.get_channel(update_channel_id)
             if channel is None:
                 log.warn(
                     f"Guild {guild_id} has an update channel set, "

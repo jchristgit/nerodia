@@ -13,7 +13,7 @@ is never run (e.g. in tests).
 
 import praw
 
-from .config import DISCORD_CFG, REDDIT_CFG, TWITCH_CFG  # noqa
+from .config import REDDIT_CFG, TWITCH_CFG
 from .twitch import TwitchClient
 
 

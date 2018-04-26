@@ -13,6 +13,7 @@ import praw
 from discord.ext import commands
 
 from .database import guilds as guild_db
+from .embeds import create_stream_online_embed
 from .twitch import TwitchStream
 from .util import token_dict, verify_dict
 
@@ -102,6 +103,6 @@ async def handle_stream_update(
                     f"Guild {guild_id} has an update channel set, "
                     "but it could not be found."
                 )
-            else:
-                status = "online" if now_online else "offline"
-                await channel.send(f"**{stream_name}** is now {status}!")
+            elif now_online:
+                embed = create_stream_online_embed(stream_name, stream)
+                await channel.send(embed=embed)

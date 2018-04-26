@@ -2,8 +2,14 @@ language: python
 
 python:
   - "3.6"
+
 install:
   - pip install flake8
 
+cache: pip
+
 script:
   - flake8
+
+notifications:
+  email: false

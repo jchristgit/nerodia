@@ -5,6 +5,7 @@ used for the Discord Bot.
 
 import asyncio
 import datetime
+import logging
 import secrets
 from typing import Optional
 
@@ -31,6 +32,9 @@ from .database import (
     subreddits as sub_db
 )
 from .database.models import DRConnection, session as db_session
+
+
+log = logging.getLogger(__name__)
 
 
 def create_instructions(token: str) -> discord.Embed:
@@ -98,7 +102,6 @@ async def wait_for_add(user_id: str) -> Optional[str]:
 class Nerodia:
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        print("[DISCORD] Loaded Commands.")
 
     @commands.command(name="connectreddit")
     @commands.check(dm_only)
@@ -227,6 +230,17 @@ class Nerodia:
         this is invoked on is following.
         """
 
+        configured_update_channel = guild_db.get_update_channel(ctx.guild.id)
+        if configured_update_channel is None:
+            update_channel = "No update channel set."
+        else:
+            update_channel = self.bot.get_channel(configured_update_channel)
+            if update_channel is None:
+                guild_db.unset_update_channel(ctx.guild.id)
+                update_channel = "No update channel set."
+            else:
+                update_channel = update_channel.mention
+
         await ctx.send(embed=discord.Embed(
             colour=discord.Colour.blue()
         ).set_author(
@@ -237,9 +251,7 @@ class Nerodia:
             value=('• ' + '\n• '.join(guild_db.get_follows(ctx.guild.id))) or "No follows :("
         ).add_field(
             name="Stream Update Channel",
-            value=self.bot.get_channel(
-                guild_db.get_update_channel(ctx.guild.id)
-            ).mention or "No update channel set:("
+            value=update_channel
         ))
 
     @commands.command()
@@ -247,7 +259,7 @@ class Nerodia:
         """Follows the given stream with the given subreddit name.
         Of course, this only works if you are a moderator on the given subreddit.
         Also supports passing a list of stream names, for example:
-            `n!sfollow imaqtpie bardmains discordapp`
+            `n!sfollow mysubreddit stream1 stream2 stream3`
         Only stream names for streams that exist will be followed.
         The streams where the bot could not validate will be shown
         in the bot's response, so you can check if you made any mistakes.
@@ -272,7 +284,7 @@ class Nerodia:
             return await ctx.send(embed=BOT_NOT_MODERATOR_EMBED.add_field(
                 name="Invite me as a Moderator:",
                 value=f"https://reddit.com/r/{subreddit_name}/about/moderators/\n"
-                      f"This is required so that I can update your sidebar.\n"
+                      "This is required so that I can update your sidebar.\n"
                       f"My reddit name is **`{BOT_REDDIT_NAME}`**."
             ))
 
@@ -442,3 +454,4 @@ def setup(bot: commands.Bot):
     """
 
     bot.add_cog(Nerodia(bot))
+    log.info("Added main cog to the Discord bot.")

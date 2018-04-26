@@ -1,7 +1,10 @@
 import asyncio
+from datetime import timedelta
 from typing import Dict, Optional, List, NamedTuple, Mapping, Union
 
 import aiohttp
+
+from .decorators import timed_async_cache
 
 
 BASE_URL = "https://api.twitch.tv/helix"
@@ -26,10 +29,13 @@ class TwitchStream(NamedTuple):
                 `TwitchStream` instance, as returned by the API.
         """
 
+        def build_thumbnail_url(url: str) -> str:
+            return url.replace('{width}', '1600').replace('{height}', '900')
+
         return cls(
             id=int(data["id"]),
             user_id=int(data["user_id"]),
-            thumbnail_url=data["thumbnail_url"],
+            thumbnail_url=build_thumbnail_url(data["thumbnail_url"]),
             title=data["title"],
         )
 
@@ -143,6 +149,7 @@ class TwitchClient:
             return None
         return user_list[0]
 
+    @timed_async_cache(expire_after=timedelta(hours=6))
     async def get_users(self, *user_names: str) -> List[TwitchUser]:
         """Obtain a list of Twitch users with the specified names.
 
@@ -156,6 +163,10 @@ class TwitchClient:
                 A list of `TwitchUser` instances for the given data.
                 If a user could not be found, they will be omitted
                 from the resulting List.
+
+        Notes:
+            This function's result for a specific set of
+            arguments is cached for at least 6 hours.
         """
 
         res = await self._get(USER_ENDPOINT + "?login=" + "&login=".join(user_names))

@@ -1,1 +1,6 @@
-from .bot import NerodiaDiscordBot
+from .consumer import DiscordBotConsumer
+
+
+Consumer = DiscordBotConsumer
+
+__all__ = ["Consumer"]

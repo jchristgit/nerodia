@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/Volcyy/nerodia.svg?branch=master)](https://travis-ci.org/Volcyy/nerodia)
 # Nerodia
 A Reddit Bot that follows Twitch streams on a per-subreddit basis
 and updates the subreddit's sidebar when a followed stream goes

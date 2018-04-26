@@ -43,7 +43,7 @@ def create_instructions(token: str) -> discord.Embed:
     Creates an Embed containing the disclaimer
     for attaching a Reddit account to your Discord account.
 
-    Arguments:
+    Args:
         token (str):
             The token that should be appended to the reddit PM link.
 
@@ -74,7 +74,7 @@ async def wait_for_add(user_id: str) -> Optional[str]:
     Waits for the given user to add his reddit
     account.
 
-    Arguments:
+    Args:
         user_id (str):
             The Discord user ID for the user
             who wants to add his reddit account.

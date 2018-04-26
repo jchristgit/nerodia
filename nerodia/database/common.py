@@ -14,7 +14,7 @@ def is_followed(stream_name: str) -> bool:
     Checks whether a given stream is followed
     by either a Subreddit or a Guild.
 
-    Arguments:
+    Args:
         stream_name (str):
             The stream which should be checked.
 

@@ -1,7 +1,6 @@
 """
 The entry point for Nerodia.
-Starts the `inbox_poller` task,
-and afterwards, the Discord bot.
+Configures logging and starts the bot.
 """
 
 
@@ -20,6 +19,7 @@ logging.basicConfig(
 
 log = logging.getLogger(__name__)
 logging.getLogger("discord").setLevel(logging.ERROR)
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

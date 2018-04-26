@@ -16,8 +16,26 @@ log = logging.getLogger(__name__)
 
 
 class NerodiaDiscordBot(commands.AutoShardedBot):
+    """The Discord bot that nerodia runs on.
+
+    This is a custom subclass of `commands.AutoShardedBot`
+    that is not any different, except that it starts the
+    tasks that nerodia uses to update stream statuses and more.
+
+    Attributes:
+        inbox_poller (asyncio.Task):
+            The background task polling the reddit inbox.
+        stream_poller (asyncio.Task):
+            The background task polling Twitch stream statuses.
+    """
 
     def __init__(self):
+        """Instantiate the Discord bot.
+
+        This sets up the `asyncio.Task`s for background
+        updating, and attaches command groups to the bot.
+        """
+
         super().__init__(
             command_prefix=commands.when_mentioned_or("n!"),
             description=DESCRIPTION,

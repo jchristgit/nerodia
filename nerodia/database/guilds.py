@@ -38,11 +38,14 @@ def get_guilds_following(stream_name: str) -> List[int]:
             A list of guilds that are following the given stream.
     """
 
-    return db.session.query(db.Follow).filter(db.Follow.follows == stream_name).filter(
-        db.Follow.guild_id
-    ).values(
-        db.Follow.guild_id
-    )
+    return [
+        row.guild_id
+        for row in db.session.query(db.Follow).filter(
+            db.Follow.follows == stream_name
+        ).filter(
+            db.Follow.guild_id.isnot(None)
+        )
+    ]
 
 
 async def follow(guild_id: int, *stream_names: str):
@@ -119,6 +122,7 @@ def unset_update_channel(guild_id: int):
     ).delete(
         synchronize_session="fetch"
     )
+    db.session.commit()
 
 
 def get_update_channel(guild_id: int) -> Optional[int]:

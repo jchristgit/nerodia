@@ -1,12 +1,13 @@
 import asyncio
+from typing import Dict, Optional, List, NamedTuple, Mapping, Union
+
 import aiohttp
-from collections import namedtuple
-from typing import Dict, Optional, List, NamedTuple, Union
 
 
 BASE_URL = "https://api.twitch.tv/helix"
 USER_ENDPOINT = BASE_URL + "/users"
 STREAM_ENDPOINT = BASE_URL + "/streams"
+JSON = Union[str, int, float, bool, None, Mapping[str, "JSON"], List["JSON"]]
 
 
 class TwitchStream(NamedTuple):
@@ -14,25 +15,67 @@ class TwitchStream(NamedTuple):
     user_id: int
     thumbnail_url: str
     title: str
-    viewer_count: int
 
     @classmethod
-    def from_data(cls, data):
+    def from_data(cls, data: JSON):
+        """Create a new `TwitchStream` based on data returned by the `/streams` endpoint.
+
+        Args:
+            data (JSON):
+                The data that should be used to populate this
+                `TwitchStream` instance, as returned by the API.
+        """
+
         return cls(
-            id=data["id"],
-            user_id=data["user_id"],
+            id=int(data["id"]),
+            user_id=int(data["user_id"]),
             thumbnail_url=data["thumbnail_url"],
             title=data["title"],
-            viewer_count=data["viewer_count"],
         )
 
 
-TwitchUser = namedtuple("TwitchUser", "id name profile_image_url offline_image_url")
+class TwitchUser(NamedTuple):
+    id: int
+    name: str
+    profile_image_url: str
+    offline_image_url: str
+
+    @classmethod
+    def from_data(cls, data: JSON):
+        """Create a new `TwitchUser` based on data returned by the `/users` endpoint.
+
+        Args:
+            data (JSON):
+                The data that should be used to populate this
+                `TwitchUser` instance, as returned by the API.
+        """
+
+        return cls(
+            id=int(data["id"]),
+            name=data["login"],
+            profile_image_url=data["profile_image_url"],
+            offline_image_url=data["offline_image_url"],
+        )
 
 
 class TwitchClient:
+    """An asynchronous Twitch API client implementation.
+
+    Manages its own `aiohttp.ClientSession` which is
+    automatically closed once the client is garbage collected.
+    """
 
     def __init__(self, client_id: str):
+        """Create a new `TwitchClient` instance.
+
+        Args:
+            client_id (str):
+                The client ID of the Twitch developer
+                application to use for all requests.
+                You can register an application here:
+                `https://dev.twitch.tv/dashboard/apps`
+        """
+
         self._cs = aiohttp.ClientSession(
             loop=asyncio.get_event_loop(),
             raise_for_status=True,
@@ -40,21 +83,52 @@ class TwitchClient:
         )
 
     def __del__(self):
+        """Close the `aiohttp.ClientSession` to prevent any warnings."""
+
         if self._cs is not None:
             self._cs.close()
 
-    async def _get(self, url: str, **kwargs) -> Dict[str, Union[Dict, List]]:
+    async def _get(self, url: str, **kwargs) -> JSON:
+        """Execute HTTP GET.
+
+        Args:
+            url (str):
+                The URL which should be requested.
+            **kwargs:
+                Any additional keyword arguments are
+                directly passed to `aiohttp.ClientSession.get`.
+
+        Returns:
+            JSON:
+                The JSON response returned by the website,
+                as a parsed Python object.
+        """
+
         async with self._cs.get(url, **kwargs) as resp:
             return await resp.json()
 
     async def _post(self, url: str, **kwargs) -> int:
+        """Execute HTTP POST.
+
+        Args:
+            url (str):
+                The URL which should be requested.
+            **kwargs:
+                Any additional keyword arguments are
+                directly passed to `aiohttp.ClientSession.get`.
+
+        Returns:
+            int:
+                The status code returned by the website.
+        """
+
         async with self._cs.post(url, **kwargs) as resp:
             return resp.status
 
     async def get_user(self, user_name: str) -> Optional[TwitchUser]:
         """Obtain information about a single Twitch user.
 
-        Arguments:
+        Args:
             user_name (str):
                 The username for which Twitch user information should be returned.
 
@@ -72,7 +146,7 @@ class TwitchClient:
     async def get_users(self, *user_names: str) -> List[TwitchUser]:
         """Obtain a list of Twitch users with the specified names.
 
-        Arguments:
+        Args:
             user_names (str):
                 The list of usernames whose Twitch user
                 information should be returned.
@@ -86,22 +160,14 @@ class TwitchClient:
 
         res = await self._get(USER_ENDPOINT + "?login=" + "&login=".join(user_names))
 
-        return [
-            TwitchUser(
-                user["id"],
-                user["login"],
-                user["profile_image_url"],
-                user["offline_image_url"],
-            )
-            for user in res["data"]
-        ]
+        return [TwitchUser.from_data(user_data) for user_data in res["data"]]
 
     async def get_streams(
         self, *stream_logins: str
     ) -> Dict[str, Optional[TwitchStream]]:
         """Obtain a mapping of given usernames to streams.
 
-        Arguments:
+        Args:
             stream_logins (str):
                 An argument list of usernames for which stream
                 should be obtained. This method assumes that
@@ -122,9 +188,11 @@ class TwitchClient:
 
         for login_chunk in login_chunks:
             users = await self.get_users(*login_chunk)
-            params = "&user_id=".join(user.id for user in users)
+            params = "&user_id=".join(str(user.id) for user in users)
             res = await self._get(STREAM_ENDPOINT + "?user_id=" + params)
-            streams = map(TwitchStream.from_data, res["data"])
+            streams = [
+                TwitchStream.from_data(stream_data) for stream_data in res["data"]
+            ]
             for user in users:
                 result[user.name] = next(
                     (stream for stream in streams if stream.user_id == user.id), None

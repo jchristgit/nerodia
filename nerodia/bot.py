@@ -57,7 +57,6 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
 
         self.inbox_poller.cancel()
         self.stream_poller.cancel()
-        log.info("Cancelled all tasks.")
 
 
 discord_bot = NerodiaDiscordBot()

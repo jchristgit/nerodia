@@ -1,53 +1,62 @@
-"""
-Contains the definition for the
-Discord Bot which is used as a
-simpler frontend to the Reddit
-bot for easier configuration.
-"""
+import logging
 
 import discord
 from discord.ext import commands
 
-from . import cogs
-from .clients import discord_game
+from . import cog
+from .config import DISCORD_CFG
+from .workers import inbox_poller, stream_poller
 
 
 DESCRIPTION = (
-    "Hello! I am a bot made by Volcyy#2359 to be used as a frontend to the Reddit Bot "
-    "/u/Botyy. The Reddit Bot is made to update the sidebar of a subreddit when one "
-    "of many streams that a subreddit's moderators can follow goes online or offline.\n\n"
-    "Please note that since it is not possible for bots to read any connected "
-    "accounts from your Discord profile, it is necessary to manually verify your "
-    "reddit identity - this has nothing to do with your connection to Reddit on Discord.\n\n"
-    "Nerodia isn't endorsed by Discord, Reddit or Twitch and does not "
-    "reflect the views or opinions of Discord, Reddit or Twitch."
+    "Hello! I am a Bot made for keeping your Discord servers and "
+    "Subreddits updated about Twitch streams going online or offline."
 )
+log = logging.getLogger(__name__)
 
 
 class NerodiaDiscordBot(commands.AutoShardedBot):
-    """
-    The base class for the discord Bot.
+    """The Discord bot that nerodia runs on.
+
+    This is a custom subclass of `commands.AutoShardedBot`
+    that is not any different, except that it starts the
+    tasks that nerodia uses to update stream statuses and more.
+
+    Attributes:
+        inbox_poller (asyncio.Task):
+            The background task polling the reddit inbox.
+        stream_poller (asyncio.Task):
+            The background task polling Twitch stream statuses.
     """
 
-    def __init__(self, game: str):
+    def __init__(self):
+        """Instantiate the Discord bot.
+
+        This sets up the `asyncio.Task`s for background
+        updating, and attaches command groups to the bot.
+        """
+
         super().__init__(
             command_prefix=commands.when_mentioned_or("n!"),
             description=DESCRIPTION,
             pm_help=True,
-            game=discord.Game(name=game)
+            game=discord.Game(name=DISCORD_CFG["game"]),
         )
-        cogs.setup(self)
+        cog.setup(self)
+        self.inbox_poller = self.loop.create_task(inbox_poller(self))
+        self.stream_poller = self.loop.create_task(stream_poller(self))
+        log.info("Started all tasks.")
 
     async def on_ready(self):
-        """
-        Event emitted when the bot has finished logging in.
-        """
+        total_members = sum(1 for _ in self.get_all_members())
+        log.info(f"Discord Bot is ready, seeing {total_members} members.")
 
-        print("[DISCORD] Logged in.")
-        print(f"ID: {self.user.id}")
-        print(f"Total: {len(self.guilds)} Guilds, {len(self.users)} users.")
-        print("Invite Link:\n"
-              f"https://discordapp.com/oauth2/authorize?&client_id={self.user.id}&scope=bot")
+    async def close(self):
+        await super().close()
+        log.info("Logged out Discord Bot.")
+
+        self.inbox_poller.cancel()
+        self.stream_poller.cancel()
 
 
-discord_bot = NerodiaDiscordBot(discord_game)
+discord_bot = NerodiaDiscordBot()

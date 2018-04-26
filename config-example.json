@@ -10,7 +10,8 @@
         "username": "",
         "password": ""
     },
-    "twitch_auth": {
-        "client_id": ""
+    "twitch": {
+        "client_id": "",
+        "webhook_callback_url": ""
     }
 }

@@ -37,7 +37,10 @@ async def _stream_poller(bot: commands.Bot):
         for username, stream in stream_information.items():
             if old_data.get(username, stream) != stream:
                 is_online = stream is not None
-                log.info(f"Stream status for {username} changed, now {is_online}. Sending an update...")
+                log.info(
+                    f"Stream status for {username} changed, now {is_online}. "
+                    "Sending an update..."
+                )
                 await handle_stream_update(bot, username, is_online, stream)
 
         await asyncio.sleep(10)

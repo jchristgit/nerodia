@@ -18,19 +18,20 @@ from .clients import reddit, twitch
 from .checks import dm_only
 from .constants import (
     # Error Embeds
-    ALREADY_CONNECTED_EMBED, BOT_NOT_MODERATOR_EMBED, DM_ONLY_EMBED, NO_CONNECTION_EMBED,
-    NO_PM_IN_TIME_EMBED, UNKNOWN_SUBREDDIT_EMBED, USER_NOT_MODERATOR_EMBED,
-
+    ALREADY_CONNECTED_EMBED,
+    BOT_NOT_MODERATOR_EMBED,
+    DM_ONLY_EMBED,
+    NO_CONNECTION_EMBED,
+    NO_PM_IN_TIME_EMBED,
+    UNKNOWN_SUBREDDIT_EMBED,
+    USER_NOT_MODERATOR_EMBED,
     # Verification timer settings
     VERIFY_TIMEOUT,
-
     # Reddit constants
-    BOT_REDDIT_NAME, PM_URL
+    BOT_REDDIT_NAME,
+    PM_URL,
 )
-from .database import (
-    guilds as guild_db,
-    subreddits as sub_db
-)
+from .database import guilds as guild_db, subreddits as sub_db
 from .database.models import DRConnection, session as db_session
 
 
@@ -56,14 +57,13 @@ def create_instructions(token: str) -> discord.Embed:
         title="Connect your Reddit Account",
         colour=discord.Colour.blue(),
         timestamp=datetime.datetime.now(),
-        description="You can disconnect your account at any time."
+        description="You can disconnect your account at any time.",
     ).add_field(
-        name="Warning",
-        value="**Do not share this link!**"
+        name="Warning", value="**Do not share this link!**"
     ).add_field(
         name="Instructions",
         value=f"Send me a [Reddit Message]({PM_URL + token}) by clicking on "
-              f"the link and clicking `send` to connect your reddit account.",
+        f"the link and clicking `send` to connect your reddit account.",
     ).set_footer(
         text="⏲ You have five minutes of time before the token expires."
     )
@@ -100,6 +100,7 @@ async def wait_for_add(user_id: str) -> Optional[str]:
 
 
 class Nerodia:
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -133,13 +134,17 @@ class Nerodia:
         if reddit_name is None:
             await ctx.send(embed=NO_PM_IN_TIME_EMBED)
         else:
-            db_session.add(DRConnection(discord_id=ctx.message.author.id, reddit_name=reddit_name))
+            db_session.add(
+                DRConnection(discord_id=ctx.message.author.id, reddit_name=reddit_name)
+            )
             db_session.commit()
-            await ctx.send(embed=discord.Embed(
-                title="Verified successfully:",
-                description=f"Your reddit name is {reddit_name}!",
-                colour=discord.Colour.green()
-            ))
+            await ctx.send(
+                embed=discord.Embed(
+                    title="Verified successfully:",
+                    description=f"Your reddit name is {reddit_name}!",
+                    colour=discord.Colour.green(),
+                )
+            )
 
     @commands.command(name="disconnectreddit")
     async def disconnect_reddit(self, ctx):
@@ -153,22 +158,26 @@ class Nerodia:
         ).first()
 
         if author is None:
-            return await ctx.send(embed=discord.Embed(
-                title="Failed to disconnect:",
-                description="You do not have an account connected.",
-                colour=discord.Colour.red()
-            ))
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="Failed to disconnect:",
+                    description="You do not have an account connected.",
+                    colour=discord.Colour.red(),
+                )
+            )
         else:
             db_session.delete(author)
-            return await ctx.send(embed=discord.Embed(
-                title="Disconnected!",
-                description="Your reddit account was successfully "
-                            "disconnected from your Discord ID.",
-                colour=discord.Colour.green()
-            ))
+            return await ctx.send(
+                embed=discord.Embed(
+                    title="Disconnected!",
+                    description="Your reddit account was successfully "
+                    "disconnected from your Discord ID.",
+                    colour=discord.Colour.green(),
+                )
+            )
 
     @commands.command(aliases=["db"])
-    async def dashboard(self, ctx, subreddit_name: str=None):
+    async def dashboard(self, ctx, subreddit_name: str = None):
         """A dashboard for information about a connected reddit account
 
         To get a dashboard on a per-subreddit basis,
@@ -186,40 +195,39 @@ class Nerodia:
             await ctx.send(embed=NO_CONNECTION_EMBED)
         elif subreddit_name is not None:
             if sub_db.exists(subreddit_name):
-                await ctx.send(embed=discord.Embed(
-                    colour=discord.Colour.blue()
-                ).set_author(
-                    name=f"Dashboard for {subreddit_name}",
-                    url=f"https://reddit.com/r/{subreddit_name}"
-                ).add_field(
-                    name="Subreddit Moderators",
-                    value='• ' + '\n• '.join(
-                        r.name for r in reddit.subreddit(subreddit_name).moderator()
+                await ctx.send(
+                    embed=discord.Embed(colour=discord.Colour.blue()).set_author(
+                        name=f"Dashboard for {subreddit_name}",
+                        url=f"https://reddit.com/r/{subreddit_name}",
+                    ).add_field(
+                        name="Subreddit Moderators",
+                        value="• "
+                        + "\n• ".join(
+                            r.name for r in reddit.subreddit(subreddit_name).moderator()
+                        ),
+                    ).add_field(
+                        name="Followed Streams",
+                        value="• " + "\n• ".join(sub_db.get_follows(subreddit_name)),
                     )
-                ).add_field(
-                    name="Followed Streams",
-                    value='• ' + '\n• '.join(sub_db.get_follows(subreddit_name))
-                ))
+                )
             else:
                 await ctx.send(embed=UNKNOWN_SUBREDDIT_EMBED)
         else:
-            modded_sub_list = '\n• '.join(sub_db.get_modded_subs(reddit_name))
+            modded_sub_list = "\n• ".join(sub_db.get_modded_subs(reddit_name))
             if modded_sub_list:
                 moderated_subs = "• " + modded_sub_list
             else:
                 moderated_subs = "*No known moderated Subreddits* :("
 
-            await ctx.send(embed=discord.Embed(
-                colour=discord.Colour.blue()
-            ).set_author(
-                name=f"Dashboard for {reddit_name}",
-                url=f"https://reddit.com/u/{reddit_name}",
-                icon_url=ctx.message.author.avatar_url
-            ).add_field(
-                name="Moderated Subreddits",
-                value=moderated_subs,
-                inline=False
-            ))
+            await ctx.send(
+                embed=discord.Embed(colour=discord.Colour.blue()).set_author(
+                    name=f"Dashboard for {reddit_name}",
+                    url=f"https://reddit.com/u/{reddit_name}",
+                    icon_url=ctx.message.author.avatar_url,
+                ).add_field(
+                    name="Moderated Subreddits", value=moderated_subs, inline=False
+                )
+            )
 
     @commands.command(name="gdb")
     @commands.guild_only()
@@ -241,18 +249,18 @@ class Nerodia:
             else:
                 update_channel = update_channel.mention
 
-        await ctx.send(embed=discord.Embed(
-            colour=discord.Colour.blue()
-        ).set_author(
-            name=f"Guild Dashboard for {ctx.guild.name}",
-            icon_url=ctx.guild.icon_url
-        ).add_field(
-            name="Followed Streams",
-            value=('• ' + '\n• '.join(guild_db.get_follows(ctx.guild.id))) or "No follows :("
-        ).add_field(
-            name="Stream Update Channel",
-            value=update_channel
-        ))
+        await ctx.send(
+            embed=discord.Embed(colour=discord.Colour.blue()).set_author(
+                name=f"Guild Dashboard for {ctx.guild.name}",
+                icon_url=ctx.guild.icon_url,
+            ).add_field(
+                name="Followed Streams",
+                value=("• " + "\n• ".join(guild_db.get_follows(ctx.guild.id)))
+                or "No follows :(",
+            ).add_field(
+                name="Stream Update Channel", value=update_channel
+            )
+        )
 
     @commands.command()
     async def sfollow(self, ctx, subreddit_name: str, *stream_names: str):
@@ -281,32 +289,35 @@ class Nerodia:
         if reddit_name not in sub_moderators:
             return await ctx.send(embed=USER_NOT_MODERATOR_EMBED)
         elif BOT_REDDIT_NAME not in sub_moderators:
-            return await ctx.send(embed=BOT_NOT_MODERATOR_EMBED.add_field(
-                name="Invite me as a Moderator:",
-                value=f"https://reddit.com/r/{subreddit_name}/about/moderators/\n"
-                      "This is required so that I can update your sidebar.\n"
-                      f"My reddit name is **`{BOT_REDDIT_NAME}`**."
-            ))
+            return await ctx.send(
+                embed=BOT_NOT_MODERATOR_EMBED.add_field(
+                    name="Invite me as a Moderator:",
+                    value=f"https://reddit.com/r/{subreddit_name}/about/moderators/\n"
+                    "This is required so that I can update your sidebar.\n"
+                    f"My reddit name is **`{BOT_REDDIT_NAME}`**.",
+                )
+            )
 
         valid_streams = [
-            s for s in stream_names
-            if await twitch.get_user(s) is not None
+            s for s in stream_names if await twitch.get_user(s) is not None
         ]
         present_follows = sub_db.get_follows(subreddit_name)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 
         await sub_db.follow(subreddit_name, *unique_streams)
-        await ctx.send(embed=discord.Embed(
-            title="Follow command",
-            colour=discord.Colour.blue(),
-            timestamp=datetime.datetime.now()
-        ).add_field(
-            name="Newly followed:",
-            value='• ' + '\n• '.join(unique_streams)
-        ).add_field(
-            name="Failed to follow:",
-            value='• ' + '\n• '.join(s for s in stream_names if s not in unique_streams)
-        ))
+        await ctx.send(
+            embed=discord.Embed(
+                title="Follow command",
+                colour=discord.Colour.blue(),
+                timestamp=datetime.datetime.now(),
+            ).add_field(
+                name="Newly followed:", value="• " + "\n• ".join(unique_streams)
+            ).add_field(
+                name="Failed to follow:",
+                value="• "
+                + "\n• ".join(s for s in stream_names if s not in unique_streams),
+            )
+        )
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -325,24 +336,25 @@ class Nerodia:
         await ctx.trigger_typing()
 
         valid_streams = [
-            s for s in stream_names
-            if await twitch.get_user(s) is not None
+            s for s in stream_names if await twitch.get_user(s) is not None
         ]
         present_follows = guild_db.get_follows(ctx.guild.id)
         unique_streams = set(s for s in valid_streams if s not in present_follows)
 
         await guild_db.follow(ctx.guild.id, *unique_streams)
-        await ctx.send(embed=discord.Embed(
-            title="Follow command",
-            colour=discord.Colour.blue(),
-            timestamp=datetime.datetime.now()
-        ).add_field(
-            name="Newly followed:",
-            value='• ' + '\n• '.join(unique_streams)
-        ).add_field(
-            name="Failed to follow:",
-            value='• ' + '\n• '.join(s for s in stream_names if s not in unique_streams)
-        ))
+        await ctx.send(
+            embed=discord.Embed(
+                title="Follow command",
+                colour=discord.Colour.blue(),
+                timestamp=datetime.datetime.now(),
+            ).add_field(
+                name="Newly followed:", value="• " + "\n• ".join(unique_streams)
+            ).add_field(
+                name="Failed to follow:",
+                value="• "
+                + "\n• ".join(s for s in stream_names if s not in unique_streams),
+            )
+        )
 
     @commands.command()
     async def sunfollow(self, ctx, subreddit_name: str, *stream_names: str):
@@ -374,16 +386,17 @@ class Nerodia:
         unfollowed = [s for s in unique_streams if s in old_follows]
         await sub_db.unfollow(subreddit_name, *unique_streams)
 
-        await ctx.send(embed=discord.Embed(
-            title="Unfollow complete",
-            colour=discord.Colour.blue()
-        ).add_field(
-            name="Unfollowed Streams",
-            value='• ' + '\n •'.join(unfollowed)
-        ).add_field(
-            name="Failed to unfollow",
-            value='• ' + '\n •'.join(s for s in unique_streams if s not in unfollowed)
-        ))
+        await ctx.send(
+            embed=discord.Embed(
+                title="Unfollow complete", colour=discord.Colour.blue()
+            ).add_field(
+                name="Unfollowed Streams", value="• " + "\n •".join(unfollowed)
+            ).add_field(
+                name="Failed to unfollow",
+                value="• "
+                + "\n •".join(s for s in unique_streams if s not in unfollowed),
+            )
+        )
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -406,16 +419,17 @@ class Nerodia:
         unfollowed = [s for s in unique_streams if s in old_follows]
         await guild_db.unfollow(ctx.guild.id, *unique_streams)
 
-        await ctx.send(embed=discord.Embed(
-            title="Unfollow complete",
-            colour=discord.Colour.blue()
-        ).add_field(
-            name="Unfollowed Streams",
-            value='• ' + '\n •'.join(unfollowed)
-        ).add_field(
-            name="Failed to unfollow",
-            value='• ' + '\n •'.join(s for s in unique_streams if s not in unfollowed)
-        ))
+        await ctx.send(
+            embed=discord.Embed(
+                title="Unfollow complete", colour=discord.Colour.blue()
+            ).add_field(
+                name="Unfollowed Streams", value="• " + "\n •".join(unfollowed)
+            ).add_field(
+                name="Failed to unfollow",
+                value="• "
+                + "\n •".join(s for s in unique_streams if s not in unfollowed),
+            )
+        )
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -441,10 +455,12 @@ class Nerodia:
             guild_db.unset_update_channel(ctx.guild.id)
         guild_db.set_update_channel(ctx.guild.id, ctx.message.channel.id)
 
-        await ctx.send(embed=discord.Embed(
-            title="Set the stream update announcement channel to this channel.",
-            colour=discord.Colour.green()
-        ))
+        await ctx.send(
+            embed=discord.Embed(
+                title="Set the stream update announcement channel to this channel.",
+                colour=discord.Colour.green(),
+            )
+        )
 
 
 def setup(bot: commands.Bot):

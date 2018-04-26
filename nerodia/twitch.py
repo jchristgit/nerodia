@@ -4,9 +4,9 @@ from collections import namedtuple
 from typing import Dict, Optional, List, NamedTuple, Union
 
 
-BASE_URL = 'https://api.twitch.tv/helix'
-USER_ENDPOINT = BASE_URL + '/users'
-STREAM_ENDPOINT = BASE_URL + '/streams'
+BASE_URL = "https://api.twitch.tv/helix"
+USER_ENDPOINT = BASE_URL + "/users"
+STREAM_ENDPOINT = BASE_URL + "/streams"
 
 
 class TwitchStream(NamedTuple):
@@ -19,21 +19,24 @@ class TwitchStream(NamedTuple):
     @classmethod
     def from_data(cls, data):
         return cls(
-            id=data['id'], user_id=data['user_id'],
-            thumbnail_url=data['thumbnail_url'], title=data['title'],
-            viewer_count=data['viewer_count']
+            id=data["id"],
+            user_id=data["user_id"],
+            thumbnail_url=data["thumbnail_url"],
+            title=data["title"],
+            viewer_count=data["viewer_count"],
         )
 
 
-TwitchUser = namedtuple('TwitchUser', 'id name profile_image_url offline_image_url')
+TwitchUser = namedtuple("TwitchUser", "id name profile_image_url offline_image_url")
 
 
 class TwitchClient:
+
     def __init__(self, client_id: str):
         self._cs = aiohttp.ClientSession(
             loop=asyncio.get_event_loop(),
             raise_for_status=True,
-            headers={'Client-ID': client_id}
+            headers={"Client-ID": client_id},
         )
 
     def __del__(self):
@@ -81,16 +84,21 @@ class TwitchClient:
                 from the resulting List.
         """
 
-        res = await self._get(USER_ENDPOINT + '?login=' + '&login='.join(user_names))
+        res = await self._get(USER_ENDPOINT + "?login=" + "&login=".join(user_names))
 
         return [
             TwitchUser(
-                user['id'], user['login'],
-                user['profile_image_url'], user['offline_image_url']
-            ) for user in res['data']
+                user["id"],
+                user["login"],
+                user["profile_image_url"],
+                user["offline_image_url"],
+            )
+            for user in res["data"]
         ]
 
-    async def get_streams(self, *stream_logins: str) -> Dict[str, Optional[TwitchStream]]:
+    async def get_streams(
+        self, *stream_logins: str
+    ) -> Dict[str, Optional[TwitchStream]]:
         """Obtain a mapping of given usernames to streams.
 
         Arguments:
@@ -114,15 +122,12 @@ class TwitchClient:
 
         for login_chunk in login_chunks:
             users = await self.get_users(*login_chunk)
-            params = '&user_id='.join(user.id for user in users)
-            res = await self._get(
-                STREAM_ENDPOINT + '?user_id=' + params
-            )
-            streams = map(TwitchStream.from_data, res['data'])
+            params = "&user_id=".join(user.id for user in users)
+            res = await self._get(STREAM_ENDPOINT + "?user_id=" + params)
+            streams = map(TwitchStream.from_data, res["data"])
             for user in users:
                 result[user.name] = next(
-                    (stream for stream in streams if stream.user_id == user.id),
-                    None
+                    (stream for stream in streams if stream.user_id == user.id), None
                 )
 
         return result

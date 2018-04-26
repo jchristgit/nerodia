@@ -12,6 +12,7 @@ from typing import Optional
 import praw
 from discord.ext import commands
 
+from .bot import discord_bot
 from .database import guilds as guild_db
 from .twitch import TwitchStream
 from .util import token_dict, verify_dict
@@ -48,7 +49,8 @@ def handle_message(msg: praw.models.Message) -> None:
     """
 
     log.debug(
-        f"Got new message from {(msg.author or msg.subreddit).name!r}, contents: {msg.body!r}."
+        f"Got new message from {(msg.author or msg.subreddit).name!r}, "
+        f"contents: {msg.body!r}."
     )
 
     if msg.subject == "verification":
@@ -58,16 +60,28 @@ def handle_message(msg: praw.models.Message) -> None:
         log.info(f"Accepted a Moderator invitation to {msg.subreddit.name}.")
 
 
-async def handle_stream_update(bot: commands.Bot, stream_name: str, now_online: bool, stream: Optional[TwitchStream]):
+async def handle_stream_update(
+    bot: commands.Bot,
+    stream_name: str,
+    now_online: bool,
+    stream: Optional[TwitchStream],
+):
     followers = guild_db.get_guilds_following(stream_name)
 
     for guild_id in followers:
         update_channel_id = guild_db.get_update_channel(guild_id)
         if update_channel_id is None:
-            log.warn(f"Guild {guild_id} is following {stream_name!r}, but has no update channel set.")
+            log.warn(
+                f"Guild {guild_id} is following {stream_name!r}",
+                "but has no update channel set.",
+            )
         else:
             channel = await discord_bot.get_channel(update_channel_id)
             if channel is None:
-                log.warn(f"Guild {guild_id} has an update channel set, but it could not be found.")
+                log.warn(
+                    f"Guild {guild_id} has an update channel set, "
+                    "but it could not be found."
+                )
             else:
-                await channel.send(f"**{stream_name}** is now {'online' if now_online else 'offline'}!")
+                status = "online" if now_online else "offline"
+                await channel.send(f"**{stream_name}** is now {status}!")

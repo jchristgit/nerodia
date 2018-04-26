@@ -16,12 +16,13 @@ log = logging.getLogger(__name__)
 
 
 class NerodiaDiscordBot(commands.AutoShardedBot):
+
     def __init__(self):
         super().__init__(
             command_prefix=commands.when_mentioned_or("n!"),
             description=DESCRIPTION,
             pm_help=True,
-            game=discord.Game(name=DISCORD_CFG['game'])
+            game=discord.Game(name=DISCORD_CFG["game"]),
         )
         cog.setup(self)
         self.inbox_poller = self.loop.create_task(inbox_poller(self))

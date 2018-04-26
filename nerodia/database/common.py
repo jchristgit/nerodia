@@ -23,9 +23,7 @@ def is_followed(stream_name: str) -> bool:
             Whether a Subreddit or Guild follows the stream or not.
     """
 
-    res = session.query(Follow) \
-        .filter(Follow.follows == stream_name) \
-        .first()
+    res = session.query(Follow).filter(Follow.follows == stream_name).first()
     return res is not None
 
 

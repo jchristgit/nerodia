@@ -27,9 +27,9 @@ def get_reddit_name(discord_id: int) -> Optional[str]:
             The reddit name associated with the given Discord ID.
     """
 
-    user = db.session.query(db.DRConnection) \
-        .filter(db.DRConnection.discord_id == discord_id) \
-        .first()
+    user = db.session.query(db.DRConnection).filter(
+        db.DRConnection.discord_id == discord_id
+    ).first()
     if user is not None:
         return user.reddit_name
     return None
@@ -49,9 +49,9 @@ def exists(subreddit_name: str) -> bool:
             Whether the Subreddit exists or not.
     """
 
-    db_sub = db.session.query(db.Follow) \
-        .filter(db.Follow.sub_name == subreddit_name) \
-        .first()
+    db_sub = db.session.query(db.Follow).filter(
+        db.Follow.sub_name == subreddit_name
+    ).first()
     if db_sub is None:
         try:
             reddit.subreddits.search_by_name(subreddit_name, exact=True)
@@ -73,8 +73,7 @@ def get_follows(sub_name: str) -> List[str]:
             A list of Twitch stream names that the subreddit is following.
     """
 
-    result = db.session.query(db.Follow.follows) \
-        .filter(db.Follow.sub_name == sub_name)
+    result = db.session.query(db.Follow.follows).filter(db.Follow.sub_name == sub_name)
     return [s for row_tuple in result for s in row_tuple]
 
 
@@ -92,10 +91,10 @@ def get_modded_subs(reddit_name: str) -> Generator[str, None, None]:
     """
 
     all_subs = (
-        n.sub_name for n in
-        db.session.query(db.Follow.sub_name)
-        .filter(db.Follow.sub_name.isnot(None))
-        .distinct()
+        n.sub_name
+        for n in db.session.query(db.Follow.sub_name).filter(
+            db.Follow.sub_name.isnot(None)
+        ).distinct()
     )
     return (
         sub_name
@@ -135,8 +134,9 @@ async def unfollow(subreddit_name: str, *stream_names: str):
             if they are being followed at the time this function is called.
     """
 
-    db.session.query(db.Follow) \
-        .filter(db.Follow.sub_name == subreddit_name) \
-        .filter(db.Follow.follows.in_(stream_names)) \
-        .delete(synchronize_session='fetch')
+    db.session.query(db.Follow).filter(db.Follow.sub_name == subreddit_name).filter(
+        db.Follow.follows.in_(stream_names)
+    ).delete(
+        synchronize_session="fetch"
+    )
     db.session.commit()

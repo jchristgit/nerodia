@@ -22,8 +22,7 @@ def get_follows(guild_id: int) -> List[str]:
             A list of Twitch stream names that the guild is following.
     """
 
-    result = db.session.query(db.Follow.follows) \
-        .filter(db.Follow.guild_id == guild_id)
+    result = db.session.query(db.Follow.follows).filter(db.Follow.guild_id == guild_id)
     return [s for row_tuple in result for s in row_tuple]
 
 
@@ -39,10 +38,11 @@ def get_guilds_following(stream_name: str) -> List[int]:
             A list of guilds that are following the given stream.
     """
 
-    return db.session.query(db.Follow) \
-        .filter(db.Follow.follows == stream_name) \
-        .filter(db.Follow.guild_id) \
-        .values(db.Follow.guild_id)
+    return db.session.query(db.Follow).filter(db.Follow.follows == stream_name).filter(
+        db.Follow.guild_id
+    ).values(
+        db.Follow.guild_id
+    )
 
 
 async def follow(guild_id: int, *stream_names: str):
@@ -57,9 +57,7 @@ async def follow(guild_id: int, *stream_names: str):
             An argument list of stream names to follow.
     """
 
-    db.session.add_all(
-        db.Follow(stream, guild_id=guild_id) for stream in stream_names
-    )
+    db.session.add_all(db.Follow(stream, guild_id=guild_id) for stream in stream_names)
     db.session.commit()
 
 
@@ -76,10 +74,11 @@ async def unfollow(guild_id: int, *stream_names: str):
             An argument list of stream names to unfollow.
     """
 
-    db.session.query(db.Follow) \
-        .filter(db.Follow.guild_id == guild_id) \
-        .filter(db.Follow.follows.in_(stream_names)) \
-        .delete(synchronize_session='fetch')
+    db.session.query(db.Follow).filter(db.Follow.guild_id == guild_id).filter(
+        db.Follow.follows.in_(stream_names)
+    ).delete(
+        synchronize_session="fetch"
+    )
     db.session.commit()
 
 
@@ -99,9 +98,7 @@ def set_update_channel(guild_id: int, channel_id: int):
             stream update announcements should be posted.
     """
 
-    db.session.add(db.UpdateChannel(
-        guild_id=guild_id, channel_id=channel_id)
-    )
+    db.session.add(db.UpdateChannel(guild_id=guild_id, channel_id=channel_id))
     db.session.commit()
 
 
@@ -117,9 +114,11 @@ def unset_update_channel(guild_id: int):
             be unset.
     """
 
-    db.session.query(db.UpdateChannel) \
-        .filter(db.UpdateChannel.guild_id == guild_id) \
-        .delete(synchronize_session='fetch')
+    db.session.query(db.UpdateChannel).filter(
+        db.UpdateChannel.guild_id == guild_id
+    ).delete(
+        synchronize_session="fetch"
+    )
 
 
 def get_update_channel(guild_id: int) -> Optional[int]:
@@ -137,9 +136,9 @@ def get_update_channel(guild_id: int) -> Optional[int]:
             or `None` if no channel was set.
     """
 
-    result = db.session.query(db.UpdateChannel) \
-        .filter(db.UpdateChannel.guild_id == guild_id) \
-        .first()
+    result = db.session.query(db.UpdateChannel).filter(
+        db.UpdateChannel.guild_id == guild_id
+    ).first()
 
     if result is not None:
         return result.channel_id

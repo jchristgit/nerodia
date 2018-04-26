@@ -5,7 +5,7 @@ and updates the subreddit's sidebar when a followed stream goes
 online or offline.
 
 ### Setup
-An [example configuration file](./config-example.json) is provided.
+An [example configuration file](./config-example.yml) is provided.
 The following section explains how to obtain the various required tokens:
 
 - `discord_auth | token`

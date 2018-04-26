@@ -3,7 +3,6 @@ __pycache__/
 .idea/
 .tox/
 config.json
+config.yml
 Pipfile.lock
 data/
-tests/test.db
-venv/

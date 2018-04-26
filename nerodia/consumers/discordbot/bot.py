@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from . import cog
-from nerodia.config import DISCORD_CFG
+from nerodia.config import CONFIG
 
 
 DESCRIPTION = (
@@ -24,7 +24,7 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
             command_prefix=commands.when_mentioned_or("n!"),
             description=DESCRIPTION,
             pm_help=True,
-            game=discord.Game(name=DISCORD_CFG["game"]),
+            game=discord.Game(name=CONFIG["consumers"]["discordbot"]["game"]),
         )
         cog.setup(self)
         log.info("Created Discord Bot.")

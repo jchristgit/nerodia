@@ -14,8 +14,8 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
 from .checks import dm_only
-from nerodia.clients import reddit, twitch
-from nerodia.database import guilds as guild_db, subreddits as sub_db
+from nerodia.clients import twitch
+from nerodia.database import guilds as guild_db
 from nerodia.database.models import DRConnection, session as db_session
 
 

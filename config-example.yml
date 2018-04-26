@@ -1,0 +1,37 @@
+# Consumer configuration.
+# These handle events emitted by the various producers.
+consumers:
+
+    # Specify the consumers that you wish to enable here.
+    # Make sure you configure each of them properly below.
+    enabled:
+        - discordbot
+
+    # The Discord Bot consumer.
+    # Runs a Discord Bot which sends out messages on stream update changes.
+    discordbot:
+        # Playing status to display as the `Playing ...` on the bot's profile.
+        game: 'playing status'
+
+        # Token used for running the actual Bot.
+        # You can obtain one by creating an application here:
+        # https://discordapp.com/developers/applications/me
+        token: 'your-discord-bot-token'
+
+
+
+# Producer configuration.
+# These obtain status updates and pass them along to the consumers.
+producers:
+
+    # Choose the active producer to use here.
+    active: 'poller'
+
+    # The Twitch poller.
+    # Finds out about status updates by polling the Twitch API until it receives something new.
+    poller:
+
+        # Client ID used for HTTP requests to the Twitch API.
+        # You can obtain one by creating an application here:
+        # https://dev.twitch.tv/dashboard/apps
+        client-id: 'your-twitch-client-id'

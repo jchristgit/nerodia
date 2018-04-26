@@ -7,7 +7,6 @@ revolving around Discord guilds.
 from typing import Optional, List
 
 from . import models as db
-from .common import follow_if_new, unfollow_if_unused
 
 
 def get_follows(guild_id: int) -> List[str]:
@@ -40,7 +39,6 @@ async def follow(guild_id: int, *stream_names: str):
             An argument list of stream names to follow.
     """
 
-    await follow_if_new(*stream_names)
     db.session.add_all(
         db.Follow(stream, guild_id=guild_id) for stream in stream_names
     )
@@ -65,7 +63,6 @@ async def unfollow(guild_id: int, *stream_names: str):
         .filter(db.Follow.follows.in_(stream_names)) \
         .delete(synchronize_session='fetch')
     db.session.commit()
-    await unfollow_if_unused(*stream_names)
 
 
 def set_update_channel(guild_id: int, channel_id: int):

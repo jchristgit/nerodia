@@ -28,5 +28,5 @@ async def create_stream_online_embed(user_name: str, stream: TwitchStream) -> Em
     )
     result.set_image(url=stream.thumbnail_url)
     user = await twitch_client.get_user(user_name)
-    result.set_thumbnail(url=user.avatar_url)
+    result.set_thumbnail(url=user.profile_image_url)
     return result

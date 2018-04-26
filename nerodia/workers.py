@@ -42,10 +42,6 @@ async def _stream_poller(bot: commands.Bot):
 
             if old_data.get(username, stream) != stream:
                 is_online = stream is not None
-                log.info(
-                    f"Stream status for {username} changed, now {is_online}. "
-                    "Sending an update..."
-                )
                 await handle_stream_update(bot, username, is_online, stream)
 
         await asyncio.sleep(10)
@@ -62,6 +58,8 @@ async def inbox_poller(bot: commands.Bot):
 
     try:
         await _inbox_poller(bot)
+    except asyncio.CancelledError:
+        log.info("reddit inbox poller was cancelled.")
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         log.error(f"Uncaught exception: {e}")
@@ -77,6 +75,8 @@ async def stream_poller(bot: commands.Bot):
 
     try:
         await _stream_poller(bot)
+    except asyncio.CancelledError:
+        log.info("Twitch stream poller was cancelled.")
     except Exception as e:
         traceback.print_tb(e.__traceback__)
         log.error(f"Uncaught exception: {e}")

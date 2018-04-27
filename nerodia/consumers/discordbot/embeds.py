@@ -1,19 +1,16 @@
 import discord
 
-from nerodia.clients import twitch as twitch_client
-from nerodia.twitch import TwitchStream
+from nerodia.twitch import TwitchStream, TwitchUser
 
 
-async def create_stream_online_embed(
-    user_name: str, stream: TwitchStream
-) -> discord.Embed:
+def create_stream_online_embed(stream: TwitchStream, user: TwitchUser) -> discord.Embed:
     """Formats stream information for an online stream into an Embed.
 
     Args:
-        user_name (str):
-            The username associated with the stream.
         stream (TwitchStream):
             The stream for which the Embed should be created.
+        user (TwitchUser):
+            The user that is streaming.
 
     Returns:
         discord.Embed:
@@ -21,14 +18,13 @@ async def create_stream_online_embed(
             information about the given stream.
     """
 
-    stream_url = f"https://twitch.tv/{user_name}"
+    stream_url = f"https://twitch.tv/{user.name}"
     result = discord.Embed(
-        title=f"{user_name} is now live!",
+        title=f"{user.name} is now live!",
         url=stream_url,
         description=f"{stream_url}\n\n*{stream.title}*",
         colour=0x722AA4,
     )
     result.set_image(url=stream.thumbnail_url)
-    user = await twitch_client.get_user(user_name)
     result.set_thumbnail(url=user.profile_image_url)
     return result

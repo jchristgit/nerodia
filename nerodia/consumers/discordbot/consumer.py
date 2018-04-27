@@ -4,8 +4,9 @@ import logging
 from .bot import NerodiaDiscordBot
 from .database import guilds as guild_db
 from .embeds import create_stream_online_embed
-from nerodia.base import Consumer, Stream
+from nerodia.base import Consumer
 from nerodia.config import CONFIG
+from nerodia.twitch import TwitchStream, TwitchUser
 
 log = logging.getLogger(__name__)
 
@@ -25,14 +26,14 @@ class DiscordBotConsumer(Consumer):
         if self.bot_task is not None:
             await self.bot.logout()
 
-    async def stream_online(self, stream: Stream):
-        followers = guild_db.get_guilds_following(stream.name)
+    async def stream_online(self, stream: TwitchStream, user: TwitchUser):
+        followers = guild_db.get_guilds_following(user.name)
 
         for guild_id in followers:
             update_channel_id = guild_db.get_update_channel(guild_id)
             if update_channel_id is None:
                 log.warning(
-                    f"Guild {guild_id} is following {stream.name!r}",
+                    f"Guild {guild_id} is following {user.name!r}",
                     "but has no update channel set.",
                 )
             else:
@@ -43,8 +44,8 @@ class DiscordBotConsumer(Consumer):
                         "but it could not be found."
                     )
                 else:
-                    embed = await create_stream_online_embed(stream.name, stream)
+                    embed = create_stream_online_embed(stream, user)
                     await channel.send(embed=embed)
 
-    async def stream_offline(self, stream: Stream):
+    async def stream_offline(self, user: TwitchUser):
         pass

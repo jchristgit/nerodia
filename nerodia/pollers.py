@@ -29,11 +29,12 @@ async def _stream_poller(consumers: List[Consumer]):
 
             if old_data.get(username, stream) != stream:
                 is_online = stream is not None
+                user = await twitch.get_user(username)
                 for consumer in consumers:
                     if is_online:
-                        await consumer.stream_online(stream)
+                        await consumer.stream_online(stream, user)
                     else:
-                        await consumer.stream_offline(stream)
+                        await consumer.stream_offline(user)
 
         await asyncio.sleep(10)
         old_data.update(stream_information)

@@ -1,7 +1,7 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
 
-from .stream import Stream
+from nerodia.twitch import TwitchStream, TwitchUser
 
 
 class Consumer(metaclass=ABCMeta):
@@ -20,9 +20,9 @@ class Consumer(metaclass=ABCMeta):
         """Run any code that is required to run before nerodia exits."""
 
     @abstractmethod
-    async def stream_online(self, stream: Stream):
+    async def stream_online(self, stream: TwitchStream, user: TwitchUser):
         """Called when the given `stream` changes state to online."""
 
     @abstractmethod
-    async def stream_offline(self, stream: Stream):
-        """Called when the given `stream` changes state to offline."""
+    async def stream_offline(self, user: TwitchUser):
+        """Called when the given `user`'s stream goes offline."""

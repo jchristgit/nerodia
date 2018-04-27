@@ -29,8 +29,7 @@ Session = sessionmaker()
 class Follow(Base):
     """
     The follow table, which
-    associates either a Discord
-    Guild ID or a subreddit name
+    associates a Discord Guild ID
     with a stream name that it
     is following.
     """
@@ -38,8 +37,7 @@ class Follow(Base):
     __tablename__ = "discordbot_follow"
 
     id = Column(Integer, primary_key=True)
-    guild_id = Column(BigInteger)
-    sub_name = Column(String(30))
+    guild_id = Column(BigInteger, nullable=False)
     follows = Column(String(30), nullable=False)
 
     def __init__(self, follows: str, *, guild_id: int = None, sub_name: str = None):

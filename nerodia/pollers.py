@@ -54,4 +54,4 @@ async def stream_poller(consumers: List[Consumer]):
         log.info("Twitch stream poller was cancelled.")
     except Exception as e:
         traceback.print_tb(e.__traceback__)
-        log.error(f"Uncaught exception: {e}")
+        log.error(f"Uncaught exception: {e.__class__.__name__}")

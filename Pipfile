@@ -9,3 +9,4 @@ sqlalchemy = "*"
 "discord.py" = {git = "https://github.com/Rapptz/discord.py", editable = true, ref = "rewrite"}
 alembic = "*"
 pyyaml = "*"
+backoff = "*"

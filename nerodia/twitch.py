@@ -3,6 +3,7 @@ from datetime import timedelta
 from typing import Dict, Optional, List, NamedTuple, Mapping, Union
 
 import aiohttp
+import backoff
 
 from .decorators import timed_async_cache
 
@@ -94,6 +95,7 @@ class TwitchClient:
         if self._cs is not None:
             self._cs.close()
 
+    @backoff.on_exception(backoff.expo, aiohttp.ServerDisconnectedError, max_tries=3)
     async def _get(self, url: str, **kwargs) -> JSON:
         """Execute HTTP GET.
 

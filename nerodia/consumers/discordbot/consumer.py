@@ -33,8 +33,8 @@ class DiscordBotConsumer(Consumer):
             update_channel_id = guild_db.get_update_channel(guild_id)
             if update_channel_id is None:
                 log.warning(
-                    f"Guild {guild_id} is following {user.name!r}",
-                    "but has no update channel set.",
+                    f"Guild {guild_id} is following {user.name!r}"
+                    "but has no update channel set."
                 )
             else:
                 channel = self.bot.get_channel(update_channel_id)

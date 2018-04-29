@@ -6,14 +6,21 @@ and the followed Twitch streams for updates.
 import asyncio
 import logging
 import traceback
-from typing import List
+from typing import List, Set
 
 from .base import Consumer
 from .clients import twitch
-from .consumers.discordbot.database.common import get_all_follows
 
 
 log = logging.getLogger(__name__)
+
+
+async def get_all_follows(consumers: List[Consumer]) -> Set[str]:
+    result = set()
+    for consumer in consumers:
+        for follow in await consumer.get_all_follows():
+            result.add(follow)
+    return result
 
 
 async def _stream_poller(consumers: List[Consumer]):
@@ -22,7 +29,7 @@ async def _stream_poller(consumers: List[Consumer]):
     old_data = {}
 
     while True:
-        all_follows = get_all_follows()
+        all_follows = await get_all_follows(consumers)
         stream_information = await twitch.get_streams(*all_follows)
 
         for username, stream in stream_information.items():
@@ -54,4 +61,4 @@ async def stream_poller(consumers: List[Consumer]):
         log.info("Twitch stream poller was cancelled.")
     except Exception as e:
         traceback.print_tb(e.__traceback__)
-        log.error(f"Uncaught exception: {e.__class__.__name__}")
+        log.error(f"{e.__class__.__name__}: {str(e)}")

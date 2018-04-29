@@ -1,4 +1,5 @@
 import asyncio
+from typing import Iterable
 from abc import ABCMeta, abstractmethod
 
 from nerodia.twitch import TwitchStream, TwitchUser
@@ -8,7 +9,7 @@ class Consumer(metaclass=ABCMeta):
     """The base class for all consumers.
 
     Defines a common interface that all consumers must implement.
-    This is used once an update is received by the producers.
+    This is used once an update is received by a producer.
     """
 
     @abstractmethod
@@ -26,3 +27,7 @@ class Consumer(metaclass=ABCMeta):
     @abstractmethod
     async def stream_offline(self, user: TwitchUser):
         """Called when the given `user`'s stream goes offline."""
+
+    @abstractmethod
+    async def get_all_follows(self) -> Iterable[str]:
+        """Get an iterable of all followed streamers that are known to this consumer."""

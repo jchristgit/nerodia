@@ -1,8 +1,11 @@
 import asyncio
 import logging
+from typing import Iterable
 
 from .bot import NerodiaDiscordBot
 from .database import guilds as guild_db
+from .database.common import session as db_session
+from .database.models import Follow
 from .embeds import create_stream_online_embed
 from nerodia.base import Consumer
 from nerodia.config import CONFIG
@@ -49,3 +52,6 @@ class DiscordBotConsumer(Consumer):
 
     async def stream_offline(self, user: TwitchUser):
         pass
+
+    async def get_all_follows(self) -> Iterable[str]:
+        return (f.follows for f in db_session.query(Follow))

@@ -1,15 +1,15 @@
 [![Build Status](https://travis-ci.org/Volcyy/nerodia.svg?branch=master)](https://travis-ci.org/Volcyy/nerodia)
 # Nerodia
 Nerodia is an application that checks Twitch streams for updates and
-notifies about this users on selected integrations.
+notifies about this on selected integrations.
 
 ## Setup
 To install requirements, use 
 ```sh
 $ pipenv install
 ```
-From here on, run the commands either in `pipenv shell` or
-prefix them with `pipenv run`, so they run in the virtual environment.
+(From here on, run the commands either in `pipenv shell` or
+prefix them with `pipenv run`, so they run in the virtual environment.)
 You now need to run the migrations with `alembic`. Use
 ```sh
 $ alembic upgrade heads

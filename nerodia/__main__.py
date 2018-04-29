@@ -27,18 +27,32 @@ ENABLED_CONSUMERS = CONFIG["consumers"]["enabled"]
 consumers = []
 
 
-async def initialize_consumers(event_loop: asyncio.AbstractEventLoop, twitch_client: TwitchClient):
+async def initialize_consumers(
+    event_loop: asyncio.AbstractEventLoop, twitch_client: TwitchClient
+):
+    """Import and initialize enabled consumers.
+
+    Args:
+        event_loop (asyncio.AbstractEventLoop):
+            The currently used event loop, passed to consumers.
+        twitch_client (TwitchClient):
+            The Twitch client to pass to the consumers.
+    """
+
     for consumer_name in ENABLED_CONSUMERS:
         module = importlib.import_module(f"nerodia.consumers.{consumer_name}")
         consumer = module.Consumer(twitch_client)
         await consumer.initialize(event_loop)
         consumers.append(consumer)
-        log.info(f"Initialized `{consumer_name}` consumer.")
+        log.info(f"Initialized consumer `{consumer.__class__.__name__}`.")
 
 
 async def cleanup_consumers():
+    """Clean up any running consumers."""
+
     for consumer in consumers:
         await consumer.cleanup()
+        log.info(f"Cleaned up consumer `{consumer.__class__.__name__}`.")
 
 
 if __name__ == "__main__":

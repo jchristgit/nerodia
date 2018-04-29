@@ -27,7 +27,6 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
             game=discord.Game(name=CONFIG["consumers"]["discordbot"]["game"]),
         )
         cog.setup(self)
-        log.info("Created Discord Bot.")
 
     async def on_ready(self):
         total_members = sum(1 for _ in self.get_all_members())

@@ -1,6 +1,6 @@
 """
 The entry point for Nerodia.
-Configures logging and starts the bot.
+Configures logging and starts everything up.
 """
 
 
@@ -13,7 +13,7 @@ from .pollers import stream_poller
 
 
 logging.basicConfig(
-    format="%(asctime)s | %(name)38s | %(funcName)15s | %(levelname)8s | %(message)s",
+    format="%(asctime)s | %(name)38s | %(funcName)20s | %(levelname)8s | %(message)s",
     datefmt="%d.%m.%y %H:%M:%S",
     level=logging.INFO,
 )
@@ -32,6 +32,7 @@ async def initialize_consumers(event_loop: asyncio.AbstractEventLoop):
         consumer = module.Consumer()
         await consumer.initialize(event_loop)
         consumers.append(consumer)
+        log.info(f"Initialized `{consumer_name}` consumer.")
 
 
 async def cleanup_consumers():
@@ -42,8 +43,8 @@ async def cleanup_consumers():
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
+    log.info("Loading consumers...")
     loop.run_until_complete(initialize_consumers(loop))
-    # Do we need to `wait_until_ready`?
     try:
         loop.run_until_complete(stream_poller(consumers))
     except KeyboardInterrupt:

@@ -164,4 +164,4 @@ def setup(bot: commands.Bot):
     """
 
     bot.add_cog(NerodiaDiscordCog(bot))
-    log.info("Added Discord cog to Discord bot.")
+    log.debug("Added main cog to Discord bot.")

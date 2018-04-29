@@ -20,7 +20,7 @@ class DiscordBotConsumer(Consumer):
     async def initialize(self, loop: asyncio.AbstractEventLoop):
         token = CONFIG["consumers"]["discordbot"]["token"]
         self.bot_task = loop.create_task(self.bot.start(token))
-        log.info("Initialized DiscordBot consumer.")
+        log.info("Started Discord Bot in background.")
 
     async def cleanup(self):
         if self.bot_task is not None:

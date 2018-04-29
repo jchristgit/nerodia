@@ -2,7 +2,7 @@ import asyncio
 from typing import Iterable
 from abc import ABCMeta, abstractmethod
 
-from nerodia.twitch import TwitchStream, TwitchUser
+from nerodia.twitch import TwitchClient, TwitchStream, TwitchUser
 
 
 class Consumer(metaclass=ABCMeta):
@@ -11,6 +11,10 @@ class Consumer(metaclass=ABCMeta):
     Defines a common interface that all consumers must implement.
     This is used once an update is received by a producer.
     """
+
+    @abstractmethod
+    def __init__(self, twitch_client: TwitchClient):
+        """Set up the consumer and its attributes."""
 
     @abstractmethod
     async def initialize(self, loop: asyncio.AbstractEventLoop):

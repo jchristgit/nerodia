@@ -1,3 +1,3 @@
-from . import consumers, clients, pollers
+from . import consumers, config, decorators, pollers, twitch
 
-__all__ = ["clients", "consumers", "pollers"]
+__all__ = ["consumers", "config", "decorators", "pollers", "twitch"]

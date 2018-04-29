@@ -9,15 +9,15 @@ from .database.models import Follow
 from .embeds import create_stream_online_embed
 from nerodia.base import Consumer
 from nerodia.config import CONFIG
-from nerodia.twitch import TwitchStream, TwitchUser
+from nerodia.twitch import TwitchClient, TwitchStream, TwitchUser
 
 log = logging.getLogger(__name__)
 
 
 class DiscordBotConsumer(Consumer):
 
-    def __init__(self):
-        self.bot = NerodiaDiscordBot()
+    def __init__(self, twitch_client: TwitchClient):
+        self.bot = NerodiaDiscordBot(twitch_client)
         self.bot_task = None
 
     async def initialize(self, loop: asyncio.AbstractEventLoop):

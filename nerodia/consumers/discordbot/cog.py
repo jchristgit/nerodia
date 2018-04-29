@@ -10,14 +10,13 @@ import discord
 from discord.ext import commands
 
 from .database import guilds as guild_db
-from nerodia.clients import twitch
 
 log = logging.getLogger(__name__)
 
 
 class NerodiaDiscordCog:
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot):
         self.bot = bot
 
     @commands.command(name="dashboard", aliases=["db"])
@@ -71,7 +70,7 @@ class NerodiaDiscordCog:
         await ctx.trigger_typing()
 
         valid_streams = [
-            s for s in stream_names if await twitch.get_user(s) is not None
+            s for s in stream_names if await self.bot.twitch.get_user(s) is not None
         ]
         present_follows = guild_db.get_follows(ctx.guild.id)
         unique_streams = set(s for s in valid_streams if s not in present_follows)

@@ -1,11 +1,10 @@
 import datetime
 import functools
-import logging
+import warnings
 from collections import OrderedDict, namedtuple
 from typing import Callable
 
 
-log = logging.getLogger(__name__)
 CacheValue = namedtuple("CacheValue", "value time")
 
 
@@ -22,7 +21,7 @@ def _method_cache_key_generator(*args, **kwargs) -> int:
     """
 
     if kwargs:
-        log.warning(
+        warnings.warn(
             f"Got keyword arguments {kwargs!r}, but this key "
             "generator only supports regular arguments."
         )

@@ -25,6 +25,6 @@ def create_stream_online_embed(stream: TwitchStream, user: TwitchUser) -> discor
         description=f"{stream_url}\n\n*{stream.title}*",
         colour=0x722AA4,
     )
-    result.set_image(url=stream.thumbnail_url)
+    result.set_image(url=user.offline_image_url)
     result.set_thumbnail(url=user.profile_image_url)
     return result

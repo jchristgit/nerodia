@@ -48,8 +48,7 @@ class NerodiaDiscordCog:
                 icon_url=ctx.guild.icon_url,
             ).add_field(
                 name="Followed Streams",
-                value=("• " + "\n• ".join(guild_db.get_follows(ctx.guild.id)))
-                or "No follows :(",
+                value=", ".join(guild_db.get_follows(ctx.guild.id)) or "No follows :(",
             ).add_field(
                 name="Stream Update Channel", value=update_channel
             )
@@ -63,7 +62,7 @@ class NerodiaDiscordCog:
 
         You can pass in a list of stream names that should
         be followed, for example:
-            `n!gfollow discordapp imaqtpie`
+            `n!follow discordapp imaqtpie`
 
         This command requires you to have the
         manage channels permission.
@@ -84,11 +83,10 @@ class NerodiaDiscordCog:
                 colour=discord.Colour.blue(),
                 timestamp=datetime.datetime.now(),
             ).add_field(
-                name="Newly followed:", value="• " + "\n• ".join(unique_streams)
+                name="Newly followed:", value=", ".join(unique_streams) or "None!"
             ).add_field(
                 name="Failed to follow:",
-                value="• "
-                + "\n• ".join(s for s in stream_names if s not in unique_streams),
+                value=", ".join(s for s in stream_names if s not in unique_streams) or "None!"
             )
         )
 
@@ -101,7 +99,7 @@ class NerodiaDiscordCog:
         You can pass in either a single stream,
         or multiple streams, simply separated by
         a space, for example:
-            `n!gunfollow imaqtpie discordapp`
+            `n!unfollow imaqtpie discordapp`
 
         This command requires the manage channels permission.
         """
@@ -117,37 +115,31 @@ class NerodiaDiscordCog:
             embed=discord.Embed(
                 title="Unfollow complete", colour=discord.Colour.blue()
             ).add_field(
-                name="Unfollowed Streams", value="• " + "\n •".join(unfollowed)
+                name="Unfollowed Streams", value=", ".join(unfollowed) or "None!"
             ).add_field(
                 name="Failed to unfollow",
-                value="• "
-                + "\n •".join(s for s in unique_streams if s not in unfollowed),
+                value=", ".join(s for s in unique_streams if s not in unfollowed) or "None!",
             )
         )
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
     @commands.guild_only()
-    async def setchannel(self, ctx):
+    async def setchannel(self, ctx, channel: discord.TextChannel = None):
         """Sets the stream update announcement channel.
 
-        This will result in all stream updates for the
-        current guild to be posted in the channel
-        in which the command was invoked.
-
-        Not setting any channel in which the streams
-        updates should be announced will result in
-        all follows being removed for the guild.
-
-        This has nothing to do with the
-        subreddit-specific follows, configurable
-        through `n!sfollow` and `n!sunfollow`.
+        The channel will be used to announce stream updates.
+        If no channel is specified, the current channel is used.
         """
 
         await ctx.trigger_typing()
+
+        if channel is None:
+            channel = ctx.message.channel
+
         if guild_db.get_update_channel(ctx.guild.id) is not None:
             guild_db.unset_update_channel(ctx.guild.id)
-        guild_db.set_update_channel(ctx.guild.id, ctx.message.channel.id)
+        guild_db.set_update_channel(ctx.guild.id, channel.id)
 
         await ctx.send(
             embed=discord.Embed(

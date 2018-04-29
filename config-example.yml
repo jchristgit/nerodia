@@ -13,6 +13,10 @@ consumers:
         # Playing status to display as the `Playing ...` on the bot's profile.
         game: 'playing status'
 
+        # Prefix used for bot commands.
+        # In addition to the prefix, users can mention the bot to invoke commands.
+        prefix: '!'
+
         # Token used for running the actual Bot.
         # You can obtain one by creating an application here:
         # https://discordapp.com/developers/applications/me

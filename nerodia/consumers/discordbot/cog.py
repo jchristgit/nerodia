@@ -86,7 +86,8 @@ class NerodiaDiscordCog:
                 name="Newly followed:", value=", ".join(unique_streams) or "None!"
             ).add_field(
                 name="Failed to follow:",
-                value=", ".join(s for s in stream_names if s not in unique_streams) or "None!"
+                value=", ".join(s for s in stream_names if s not in unique_streams)
+                or "None!",
             )
         )
 
@@ -118,7 +119,8 @@ class NerodiaDiscordCog:
                 name="Unfollowed Streams", value=", ".join(unfollowed) or "None!"
             ).add_field(
                 name="Failed to unfollow",
-                value=", ".join(s for s in unique_streams if s not in unfollowed) or "None!",
+                value=", ".join(s for s in unique_streams if s not in unfollowed)
+                or "None!",
             )
         )
 

@@ -21,7 +21,9 @@ class NerodiaDiscordBot(commands.AutoShardedBot):
         """Instantiate the Discord bot."""
 
         super().__init__(
-            command_prefix=commands.when_mentioned_or("n!"),
+            command_prefix=commands.when_mentioned_or(
+                CONFIG["consumers"]["discordbot"]["prefix"]
+            ),
             description=DESCRIPTION,
             pm_help=True,
             game=discord.Game(name=CONFIG["consumers"]["discordbot"]["game"]),

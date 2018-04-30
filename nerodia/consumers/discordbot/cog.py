@@ -8,6 +8,7 @@ import logging
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import Context
 
 from .database import guilds as guild_db
 
@@ -126,7 +127,7 @@ class NerodiaDiscordCog:
     @commands.command()
     @commands.has_permissions(manage_channels=True)
     @commands.guild_only()
-    async def setchannel(self, ctx, channel: discord.TextChannel = None):
+    async def setchannel(self, ctx: Context, channel: discord.TextChannel = None):
         """Sets the stream update announcement channel.
 
         The channel will be used to announce stream updates.
@@ -144,10 +145,36 @@ class NerodiaDiscordCog:
 
         await ctx.send(
             embed=discord.Embed(
-                title="Set the stream update announcement channel to this channel.",
+                description=(
+                    "Set the stream update announcement "
+                    f"channel to {channel.mention}."
+                ),
                 colour=discord.Colour.green(),
             )
         )
+
+    @setchannel.error
+    async def setchannel_error(_, ctx: Context, error: commands.CommandError):
+        """The error handler for the `setchannel` command.
+
+        Called by discord.py once an exception occurs there.
+
+        Args:
+            ctx (Context):
+                The invocation context of the errored command.
+            error (commands.CommandError):
+                The error raised by the command.
+        """
+
+        # The user passed in an unknown channel, inform them about it.
+        if isinstance(error, commands.BadArgument):
+            channel_name = ctx.message.content.split()[-1]
+            await ctx.send(
+                embed=discord.Embed(
+                    description=f"I couldn't find a channel named `{channel_name}`...",
+                    colour=discord.Colour.red(),
+                )
+            )
 
 
 def setup(bot: commands.Bot):

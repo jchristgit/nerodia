@@ -14,7 +14,7 @@ from .twitch import TwitchClient
 
 
 logging.basicConfig(
-    format="%(asctime)s | %(name)38s | %(funcName)20s | %(levelname)8s | %(message)s",
+    format="%(asctime)s | %(name)45s | %(funcName)22s | %(levelname)8s | %(message)s",
     datefmt="%d.%m.%y %H:%M:%S",
     level=logging.INFO,
 )

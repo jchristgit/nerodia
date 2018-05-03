@@ -10,9 +10,7 @@ from .models import session, Follow
 
 
 def is_followed(stream_name: str) -> bool:
-    """
-    Checks whether a given stream is followed
-    by either a Subreddit or a Guild.
+    """Checks whether a given stream is followed by either a Subreddit or a Guild.
 
     Args:
         stream_name (str):

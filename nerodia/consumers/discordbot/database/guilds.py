@@ -27,7 +27,8 @@ def get_follows(guild_id: int) -> List[str]:
 
 
 def get_guilds_following(stream_name: str) -> List[int]:
-    """Get a list of guild IDs following the given channel.
+    """
+    Get a list of guild IDs following the given channel.
 
     Arguments:
         stream_name (str):

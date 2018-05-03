@@ -1,7 +1,9 @@
 import asyncio
-from typing import Iterable
 from abc import ABCMeta, abstractmethod
+from typing import Iterable
 
+# from nerodia.base import Module
+from nerodia.core import Nerodia
 from nerodia.twitch import TwitchClient, TwitchStream, TwitchUser
 
 
@@ -13,13 +15,20 @@ class Consumer(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def __init__(self, twitch_client: TwitchClient):
+    def __init__(self, twitch_client: TwitchClient, nerodia: Nerodia):
         """Set up the consumer and its attributes.
 
         Args:
             twitch_client (TwitchClient):
                 An instance of the application's Twitch client.
+            nerodia (Nerodia):
+                An instance of the central nerodia class managing the application.
         """
+
+    @property
+    @abstractmethod
+    def name(self):
+        """Return the name of this consumer. Must be identical to the package name."""
 
     @abstractmethod
     async def initialize(self, loop: asyncio.AbstractEventLoop):
@@ -65,4 +74,34 @@ class Consumer(metaclass=ABCMeta):
             Iterable[str]:
                 An iterable of stream names that are
                 being followed on this consumer.
+        """
+
+    @abstractmethod
+    async def load_module(self, module: "Module"):
+        """
+        Load the specified consumer-specific module.
+
+        Args:
+            module (Module):
+                The module to load. This method should
+                then call `await module.attach(self)`
+                to attach the module to the consumer instance.
+        """
+
+    @abstractmethod
+    async def unload_module(self, module_name: str):
+        """
+        Unload the specified consumer-specific module.
+
+        Args:
+            module_name (str):
+                The module to unload. This method should
+                find the module within its loaded modules
+                and detach the module from the consumer instance.
+
+        Raises:
+            ValueError:
+                If the given module could not be found
+                within the loaded modules, this method
+                should raise a `ValueError`.
         """

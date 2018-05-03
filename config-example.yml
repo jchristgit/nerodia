@@ -23,6 +23,16 @@ consumers:
         token: 'your-discord-bot-token'
 
 
+# Module configuration.
+# Modules add functionality that is not necessary to run nerodia, but is nice to have.
+modules:
+    # Select modules you want to have enabled here.
+    # Note that you need to use `<consumer_name>.<module_name>` to
+    # use modules specific to consumers.
+    enabled:
+        # Adds an administration cog to the Discord Bot consumer.
+        # - discordbot.admincog
+
 
 # Producer configuration.
 # These obtain status updates and pass them along to the consumers.

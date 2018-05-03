@@ -12,6 +12,7 @@ class Nerodia:
         self.config = config
         self.consumers = set()
         self.loop = loop
+        self.modules = set()
 
     async def cleanup_consumer(self, consumer_name: str):
         """Cleans up the specified consumer and removes it from nerodia."""
@@ -42,7 +43,7 @@ class Nerodia:
         """Import, initialize and add consumer to nerodia."""
 
         module = importlib.import_module(f"nerodia.consumers.{consumer_name}")
-        consumer = module.Consumer(twitch_client)
+        consumer = module.Consumer(twitch_client, self)
 
         if consumer in self.consumers:
             log.error(
@@ -55,18 +56,75 @@ class Nerodia:
 
         self.consumers.add(consumer)
 
-    def run(self, twitch_client, stream_poller):
-        log.info("Loading consumers...")
-        enabled_consumers = self.config["consumers"]["enabled"]
+    async def load_module(self, module_path: str):
+        if "." in module_path:
+            consumer_for_module = module_path.split(".")[0]
+            consumer = next(
+                (c for c in self.consumers if c.name == consumer_for_module), None
+            )
 
+            if consumer is None:
+                error_text = (
+                    f"Tried loading module {module_path} for consumer "
+                    f"{consumer_for_module}, but the consumer could not be found."
+                )
+                log.error(error_text)
+                raise ValueError(error_text)
+
+            module = importlib.import_module(f"nerodia.modules.{module_path}")
+            await consumer.load_module(module.Module(self))
+            self.modules.add(module)
+
+        else:
+            raise NotImplementedError(
+                "Application-level modules are not supported yet."
+            )
+            # module = importlib.import_module(f"nerodia.modules.nerodia.{module_path}")
+
+    async def unload_module(self, module_path: str):
+        if "." in module_path:
+            module_path_pieces = module_path.split(".")
+            consumer_for_module = module_path_pieces[0]
+            consumer = next(
+                (c for c in self.consumers if c.name == consumer_for_module), None
+            )
+
+            if consumer is None:
+                error_text = (
+                    f"Tried unloading module {module_path} for consumer "
+                    f"{consumer_for_module}, but the consumer could not be found."
+                )
+                log.error(error_text)
+                raise ValueError(error_text)
+
+            module_name = module_path_pieces[1]
+            await consumer.unload_module(module_name)
+
+        else:
+            raise NotImplementedError(
+                "Application-level modules are not supported yet."
+            )
+
+    def run(self, twitch_client, stream_poller):
+        enabled_consumers = self.config["consumers"]["enabled"]
+        enabled_modules = self.config["modules"]["enabled"]
+
+        log.info("Loading consumers...")
         for consumer in enabled_consumers:
             self.loop.run_until_complete(
                 self.initialize_consumer(twitch_client, consumer)
             )
 
+        log.info("Loading modules...")
+        for module_path in enabled_modules:
+            self.loop.run_until_complete(self.load_module(module_path))
+
         try:
             self.loop.run_until_complete(stream_poller(self.consumers, twitch_client))
         except KeyboardInterrupt:
             log.info("Got SIGINT. Shutting down...")
+
+        for module_path in enabled_modules:
+            self.loop.run_until_complete(self.unload_module(module_path))
 
         self.loop.run_until_complete(self.cleanup_all_consumers())

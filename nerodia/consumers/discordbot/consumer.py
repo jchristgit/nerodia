@@ -7,7 +7,8 @@ from .database import guilds as guild_db
 from .database.common import session as db_session
 from .database.models import Follow
 from .embeds import create_stream_online_embed
-from nerodia.base import Consumer
+from nerodia.base import Consumer, Module
+from nerodia.core import Nerodia
 from nerodia.config import CONFIG
 from nerodia.twitch import TwitchClient, TwitchStream, TwitchUser
 
@@ -15,10 +16,13 @@ log = logging.getLogger(__name__)
 
 
 class DiscordBotConsumer(Consumer):
+    name = "discordbot"
 
-    def __init__(self, twitch_client: TwitchClient):
+    def __init__(self, twitch_client: TwitchClient, nerodia: Nerodia):
         self.bot = NerodiaDiscordBot(twitch_client)
         self.bot_task = None
+        self.nerodia = nerodia
+        self.modules = set()
 
     async def initialize(self, loop: asyncio.AbstractEventLoop):
         token = CONFIG["consumers"]["discordbot"]["token"]
@@ -55,3 +59,20 @@ class DiscordBotConsumer(Consumer):
 
     async def get_all_follows(self) -> Iterable[str]:
         return (f.follows for f in db_session.query(Follow))
+
+    async def load_module(self, module: Module):
+        await module.attach(self)
+        self.modules.add(module)
+
+    async def unload_module(self, module_name: str):
+        module = next((m for m in self.modules if m.name == module_name), None)
+
+        if module is None:
+            log.error(
+                f"Tried unloading module {module_name} from {self.__class__.__name__}, "
+                "but it is currently not loaded."
+            )
+            raise ValueError(f"Cannot unload unloaded module {module_name}")
+
+        await module.detach(self)
+        self.modules.remove(module)

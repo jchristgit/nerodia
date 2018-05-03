@@ -72,8 +72,9 @@ class Nerodia:
                 raise ValueError(error_text)
 
             module = importlib.import_module(f"nerodia.modules.{module_path}")
-            await consumer.load_module(module.Module(self))
-            self.modules.add(module)
+            module_instance = module.Module(self)
+            await consumer.load_module(module_instance)
+            self.modules.add(module_instance)
 
         else:
             raise NotImplementedError(
@@ -83,8 +84,7 @@ class Nerodia:
 
     async def unload_module(self, module_path: str):
         if "." in module_path:
-            module_path_pieces = module_path.split(".")
-            consumer_for_module = module_path_pieces[0]
+            consumer_for_module = module_path.split(".")[0]
             consumer = next(
                 (c for c in self.consumers if c.name == consumer_for_module), None
             )
@@ -97,8 +97,14 @@ class Nerodia:
                 log.error(error_text)
                 raise ValueError(error_text)
 
-            module_name = module_path_pieces[1]
-            await consumer.unload_module(module_name)
+            module = next((m for m in self.modules if m.name == module_path), None)
+            if module is None:
+                error_text = f"Cannot unload already unloaded module {module_path}."
+                log.error(error_text)
+                raise ValueError(error_text)
+
+            await consumer.unload_module(module_path)
+            self.modules.remove(module)
 
         else:
             raise NotImplementedError(
@@ -124,7 +130,7 @@ class Nerodia:
         except KeyboardInterrupt:
             log.info("Got SIGINT. Shutting down...")
 
-        for module_path in enabled_modules:
-            self.loop.run_until_complete(self.unload_module(module_path))
+        for module in self.modules:
+            self.loop.run_until_complete(self.unload_module(module.name))
 
         self.loop.run_until_complete(self.cleanup_all_consumers())

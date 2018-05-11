@@ -20,6 +20,11 @@ class TwitchStream(NamedTuple):
     thumbnail_url: str
     title: str
 
+    def __eq__(self, other):
+        """Provide a custom equality check that ignores game / thumbnail URL updates."""
+
+        return self.id == other.id and self.user_id == other.user_id
+
     @classmethod
     def from_data(cls, data: JSON):
         """Create a new `TwitchStream` based on data returned by the `/streams` endpoint.

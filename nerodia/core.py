@@ -82,7 +82,7 @@ class Nerodia:
             )
             # module = importlib.import_module(f"nerodia.modules.nerodia.{module_path}")
 
-    async def unload_module(self, module_path: str):
+    async def unload_module(self, module_path: str, remove_from_set: bool = True):
         if "." in module_path:
             consumer_for_module = module_path.split(".")[0]
             consumer = next(
@@ -104,7 +104,8 @@ class Nerodia:
                 raise ValueError(error_text)
 
             await consumer.unload_module(module_path)
-            self.modules.remove(module)
+            if remove_from_set:
+                self.modules.remove(module)
 
         else:
             raise NotImplementedError(
@@ -131,6 +132,7 @@ class Nerodia:
             log.info("Got SIGINT. Shutting down...")
 
         for module in self.modules:
-            self.loop.run_until_complete(self.unload_module(module.name))
+            self.loop.run_until_complete(self.unload_module(module.name, remove_from_set=False))
 
+        self.modules.clear()
         self.loop.run_until_complete(self.cleanup_all_consumers())
